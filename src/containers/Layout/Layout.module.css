@@ -1,0 +1,10 @@
+.Layout {
+    height: 100%;
+    width: 100%;
+    position: fixed;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    background: #f8f6ec;
+}

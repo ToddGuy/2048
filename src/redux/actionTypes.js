@@ -1,0 +1,1 @@
+export const SWIPE_TILES = "SWIPE_TILES";

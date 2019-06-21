@@ -1,0 +1,8 @@
+.GameBoard {
+    width: 345px;
+    height: 345px;
+    border-radius: 5px;
+    background: #baada0;
+    position: relative;
+}
+

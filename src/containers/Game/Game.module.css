@@ -1,0 +1,9 @@
+.Game {
+    position: center;
+    display: flex;
+    flex-flow: column nowrap;
+    justify-content: center;
+    align-items: center;
+    height: 500px;
+    width: 500px;
+}
