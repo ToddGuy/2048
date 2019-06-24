@@ -1,13 +1,10 @@
 import { SWIPE_TILES } from '../actionTypes';
+
 import { Queue } from "../../utils/ds";
+import { range, generateKey } from "../../utils/helper";
 
-const generateKey = (function() {
-  let i = 0;
-  return () => i++;
-})();
-
-const initialState = {
-  tiles: (function(){
+const initialState = new function(){
+  const tiles = (function(){
     const ROWS = 4;
     const COLS = 4;
 
@@ -20,6 +17,8 @@ const initialState = {
       tiles.push(tileRow);
       for (let j = 0; j < COLS; j++) {
         const tile = {
+          row: i,
+          col: j,
           yAxisPos: yAxisPos,
           xAxisPos: xAxisPos,
           filled: false,
@@ -32,7 +31,6 @@ const initialState = {
     }
 
     let fn = function() {
-      const range = (min, max) => Math.floor(Math.random() * (max - min)) + min;
       let row = range(0, 4);
       let col = range(0, 4);
       let value = range(2, 5);
@@ -57,22 +55,67 @@ const initialState = {
         filled: true,
         value,
         isNew: true,
+        isMerged: false,
         key: generateKey()
       };
     };
 
-    fn();
-    fn();
+    for (let i = 0 ; i < 16; i++)
+      fn();
+
+    tiles[0][0] = {
+      ...tiles[0][0],
+      filled: true,
+      value: 2,
+      isNew: true,
+      isMerged: false,
+      key: generateKey(),
+      in: true
+    };
+
+    tiles[0][1] = {
+      ...tiles[0][1],
+      filled: true,
+      value: 2,
+      isNew: true,
+      isMerged: false,
+      key: generateKey(),
+      in: true
+    };
+
+    tiles[0][2] = {
+      ...tiles[0][2],
+      filled: true,
+      value: 2,
+      isNew: true,
+      isMerged: false,
+      key: generateKey(),
+      in: true
+    };
+
+    tiles[0][3] = {
+      ...tiles[0][3],
+      filled: true,
+      value: 2,
+      isNew: false,
+      isMerged: false,
+      key: generateKey(),
+      in: true
+    };
 
     return tiles;
-  })(),
+  })();
+
+  this.tiles = tiles;
+  this.filledTiles = tiles.reduce((acc, row) => acc.concat(...row.filter(col => col.filled)), []);
 };
 
-function moveTiles(tiles, direction) {
-  const empty = {
-    filled: false,
-    value: -1
-  };
+function swipeTiles(state, { payload: { direction } }) {
+
+  console.log("swipeTiles: ", state);
+
+  const tiles = state.tiles;
+  let filledTiles = state.filledTiles.filter((el) => !el.remove);
 
   const shiftedTiles = [];
   let q = new Queue();
@@ -84,29 +127,32 @@ function moveTiles(tiles, direction) {
     while (cur > -1) {
       if (tiles[row][cur].filled) {
 
-        delete tiles[row][cur].history;
         q.push(tiles[row][cur]);
 
         if (q.getLength() === 2) {
           const front = q.pop();
-          const shiftedTile = {...front, isNew: false};
+          const shiftedTile = {...front, isNew: false, isMerged: false };
 
-          let back;
           if (front.value === q.peek().value) {
-            back = q.pop();
+            const back = q.pop();
             shiftedTile.value = front.value * 2;
+            shiftedTile.isMerged = true;
+            shiftedTile.key = generateKey();
+            shiftedTile.xAxisPos = tiles[row][pos].xAxisPos;
+            shiftedTile.yAxisPos = tiles[row][pos].yAxisPos;
+            // shiftedTile.history.second = {...back};
+
+            const backIndex = filledTiles.findIndex(el => el.row === back.row && el.col === back.col);
+            filledTiles[backIndex] = {...filledTiles[backIndex], xAxisPos: shiftedTile.xAxisPos, yAxisPos: shiftedTile.yAxisPos, remove: true, filled: false};
+
+            const frontIndex = filledTiles.findIndex(el => el.row === front.row && el.col === front.col);
+            filledTiles[frontIndex] = {...filledTiles[frontIndex], xAxisPos: shiftedTile.xAxisPos, yAxisPos: shiftedTile.yAxisPos, remove: true, filled: false};
+
+            filledTiles.push(shiftedTile);
           }
 
-          const posTile = tiles[row][pos];
-          shiftedTile.yAxisPos = posTile.yAxisPos;
-          shiftedTile.xAxisPos = posTile.xAxisPos;
-          shiftedTile.history = {
-            first: {...front},
-          };
-          if (back !== undefined) {
-            shiftedTile.history.second = {...back}
-          }
           shiftedRow.unshift(shiftedTile);
+
           pos--;
         }
       }
@@ -115,38 +161,60 @@ function moveTiles(tiles, direction) {
 
     if (!q.isEmpty()) { //last cell
       const front = q.pop();
-      const popped = {...front, isNew: false};
-      popped.yAxisPos = tiles[row][pos].yAxisPos;
-      popped.xAxisPos = tiles[row][pos].xAxisPos;
-      popped.history = {
-        first: {...front}
-      };
+      const popped = {...front, isNew: false, isMerged: false};
       shiftedRow.unshift(popped);
-      pos--;
     }
 
-    while (pos > -1) {
-      const emptyTile = {...empty};
-      emptyTile.yAxisPos = tiles[row][pos].yAxisPos;
-      emptyTile.xAxisPos = tiles[row][pos].xAxisPos;
-      shiftedRow.unshift(emptyTile);
-      pos--;
+    const empty = {
+      filled: false,
+      isNew: false,
+      isMerged: false,
+      value: -1
+    };
+
+    const filledTilesCopy = [...filledTiles];
+
+    for (let col = 0; col < 4; col++) {
+      if (shiftedRow.length < 4) {
+        const emptyTile = {...empty};
+        emptyTile.yAxisPos = tiles[row][pos].yAxisPos;
+        emptyTile.xAxisPos = tiles[row][pos].xAxisPos;
+        shiftedRow.unshift(emptyTile);
+      } else {
+        const curItem = shiftedRow[col];
+        if (curItem.filled) {
+          const index = filledTiles.findIndex(el => el.row === curItem.row && el.col === curItem.col && !el.remove);
+
+          filledTilesCopy[index] = {
+            ...filledTiles[index],
+            xAxisPos: tiles[row][col].xAxisPos,
+            yAxisPos: tiles[row][col].yAxisPos,
+            filled: true,
+            isNew: false,
+            row: row,
+            col: col
+          };
+
+          shiftedRow[col] = filledTilesCopy[index];
+        }
+      }
     }
+    filledTiles = filledTilesCopy;
 
     shiftedTiles.push(shiftedRow);
   }
 
   console.log("tiles: ", tiles);
   console.log("shiftedTiles: ", shiftedTiles);
+  console.log("filledTiles: ", filledTiles);
 
-
-  return shiftedTiles;
+  return {tiles: shiftedTiles, filledTiles: filledTiles};
 }
 
 export default function(state = initialState, action) {
   switch (action.type) {
     case SWIPE_TILES:
-      return {...state, tiles: moveTiles(state.tiles, action.payload)};
+      return {...state, ...swipeTiles(state, action)};
 
     default:
       return state;

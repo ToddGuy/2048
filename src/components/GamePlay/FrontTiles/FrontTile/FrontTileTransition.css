@@ -1,0 +1,33 @@
+.tile-appear {
+    color: purple;
+}
+.tile-appear-active {
+    color: purple;
+}
+
+.tile-appear-done {
+    color: purple;
+}
+
+.tile-enter {
+    color: green;
+}
+
+.tile-enter-active {
+    color: greenyellow;
+}
+
+.tile-enter-done {
+    color: red;
+}
+
+.tile-exit {
+    transition: 1s ease-in-out;
+    color: blue;
+}
+
+.tile-exit-active {
+    transition: 1s ease-in-out;
+    color: blue;
+}
+

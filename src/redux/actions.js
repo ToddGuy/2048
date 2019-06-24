@@ -4,7 +4,7 @@ export const swipeTiles = direction => {
   return {
     type: SWIPE_TILES,
     payload: {
-      direction: direction,
+      direction: direction
     }
   }
 };
