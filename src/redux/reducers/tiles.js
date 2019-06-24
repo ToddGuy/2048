@@ -131,19 +131,20 @@ function swipeTiles(state, { payload: { direction } }) {
 
         if (q.getLength() === 2) {
           const front = q.pop();
-          const shiftedTile = {...front, isNew: false, isMerged: false };
+          let shiftedTile = {...front, isNew: false, isMerged: false };
 
           if (front.value === q.peek().value) {
             const back = q.pop();
-            shiftedTile.value = front.value * 2;
-            shiftedTile.filled = true;
-            shiftedTile.isMerged = true;
-            shiftedTile.key = generateKey();
-            shiftedTile.xAxisPos = tiles[row][pos].xAxisPos;
-            shiftedTile.yAxisPos = tiles[row][pos].yAxisPos;
-            shiftedTile.row = row;
-            shiftedTile.col = pos;
-            // shiftedTile.history.second = {...back};
+            shiftedTile = {
+              ...shiftedTile,
+              value: front.value * 2,
+              filled: true,
+              isMerged: true,
+              key: generateKey(),
+              xAxisPos: tiles[row][pos].xAxisPos,
+              yAxisPos: tiles[row][pos].yAxisPos,
+              row: row, col: pos
+            };
 
             const backIndex = filledTiles.findIndex(el => el.row === back.row && el.col === back.col);
             filledTiles[backIndex] = {...filledTiles[backIndex], xAxisPos: shiftedTile.xAxisPos, yAxisPos: shiftedTile.yAxisPos, remove: true, filled: false};
