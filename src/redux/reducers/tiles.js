@@ -97,7 +97,7 @@ const initialState = new function(){
       ...tiles[0][3],
       filled: true,
       value: 2,
-      isNew: false,
+      isNew: true,
       isMerged: false,
       key: generateKey(),
       in: true
@@ -136,10 +136,13 @@ function swipeTiles(state, { payload: { direction } }) {
           if (front.value === q.peek().value) {
             const back = q.pop();
             shiftedTile.value = front.value * 2;
+            shiftedTile.filled = true;
             shiftedTile.isMerged = true;
             shiftedTile.key = generateKey();
             shiftedTile.xAxisPos = tiles[row][pos].xAxisPos;
             shiftedTile.yAxisPos = tiles[row][pos].yAxisPos;
+            shiftedTile.row = row;
+            shiftedTile.col = pos;
             // shiftedTile.history.second = {...back};
 
             const backIndex = filledTiles.findIndex(el => el.row === back.row && el.col === back.col);
@@ -151,18 +154,14 @@ function swipeTiles(state, { payload: { direction } }) {
             filledTiles.push(shiftedTile);
           }
 
-          shiftedRow.unshift(shiftedTile);
-
-          pos--;
+          shiftedRow[pos--] = shiftedTile;
         }
       }
       cur--;
     }
 
     if (!q.isEmpty()) { //last cell
-      const front = q.pop();
-      const popped = {...front, isNew: false, isMerged: false};
-      shiftedRow.unshift(popped);
+      shiftedRow[pos--] = {...q.pop(), isNew: false, isMerged: false};
     }
 
     const empty = {
@@ -175,28 +174,31 @@ function swipeTiles(state, { payload: { direction } }) {
     const filledTilesCopy = [...filledTiles];
 
     for (let col = 0; col < 4; col++) {
-      if (shiftedRow.length < 4) {
+      if (pos > -1) {
         const emptyTile = {...empty};
         emptyTile.yAxisPos = tiles[row][pos].yAxisPos;
         emptyTile.xAxisPos = tiles[row][pos].xAxisPos;
-        shiftedRow.unshift(emptyTile);
-      } else {
+        shiftedRow[pos--] = emptyTile;
+      } else if (!shiftedRow[col].isMerged) { //filled
+
         const curItem = shiftedRow[col];
-        if (curItem.filled) {
-          const index = filledTiles.findIndex(el => el.row === curItem.row && el.col === curItem.col && !el.remove);
-
-          filledTilesCopy[index] = {
-            ...filledTiles[index],
-            xAxisPos: tiles[row][col].xAxisPos,
-            yAxisPos: tiles[row][col].yAxisPos,
-            filled: true,
-            isNew: false,
-            row: row,
-            col: col
-          };
-
-          shiftedRow[col] = filledTilesCopy[index];
+        if (curItem.isMerged) {
+          console.log(curItem);
+          console.log(row, col)
         }
+        const index = filledTiles.findIndex(el => el.row === curItem.row && el.col === curItem.col && !el.remove);
+
+        filledTilesCopy[index] = {
+          ...filledTiles[index],
+          xAxisPos: tiles[row][col].xAxisPos,
+          yAxisPos: tiles[row][col].yAxisPos,
+          filled: true,
+          isNew: false,
+          row: row,
+          col: col
+        };
+
+        shiftedRow[col] = filledTilesCopy[index];
       }
     }
     filledTiles = filledTilesCopy;
