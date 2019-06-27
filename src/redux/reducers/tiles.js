@@ -617,13 +617,16 @@ function swipeTilesV2(state, { payload: { direction } }) {
   let shift;
   let traverse;
   let swapRowCol = false;
+  let getTiles = (row, col, swap) => swap ? tiles[row][col] : tiles[col][row];
+
+  console.log(direction);
 
   if (direction === 40) { //down
-    // rowTraverseCondition = (x) => x > -1;
-    // shift = (x) => --x;
-    // traverse = 3;
-    // swapRowCol = true;
-    swipeTilesDown(state);
+    rowTraverseCondition = (x) => x > -1;
+    shift = (x) => --x;
+    traverse = 3;
+    swapRowCol = true;
+    // return swipeTilesDown(state);
   } else if (direction === 37) { //left
     rowTraverseCondition = (x) => x < 4;
     shift = (x) => ++x;
@@ -639,6 +642,7 @@ function swipeTilesV2(state, { payload: { direction } }) {
   const shiftedTiles = [];
   let q = new Queue();
   for (let row = 0; row < 4; row++) {
+
     let shiftedRow = [];
     let cur = traverse; //will keep going through all, only stopping when it finds filled cell.
     let pos = cur; //will always keep pointed to next cell to fill
