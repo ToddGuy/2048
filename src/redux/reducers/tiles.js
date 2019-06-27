@@ -617,7 +617,8 @@ function swipeTilesV2(state, { payload: { direction } }) {
   let shift;
   let traverse;
   let swapRowCol = false;
-  let getTiles = (row, col, swap) => swap ? tiles[row][col] : tiles[col][row];
+  const getTile = (row, col, swap) => swap ? tiles[col][row] : tiles[row][col];
+  // const swapRowColAttrs = (row, col, swap) => swap ? {row: col, col: row} : {row: row, col: col};
 
   console.log(direction);
 
@@ -626,7 +627,7 @@ function swipeTilesV2(state, { payload: { direction } }) {
     shift = (x) => --x;
     traverse = 3;
     swapRowCol = true;
-    // return swipeTilesDown(state);
+    return swipeTilesDown(state);
   } else if (direction === 37) { //left
     rowTraverseCondition = (x) => x < 4;
     shift = (x) => ++x;
@@ -637,9 +638,12 @@ function swipeTilesV2(state, { payload: { direction } }) {
     rowTraverseCondition = (x) => x > -1;
     shift = (x) => --x;
     traverse = 3;
+  } else {
+    return state; //TODO
   }
 
-  const shiftedTiles = [];
+  const shiftedTiles = swapRowCol ? [[], [], [], []] : [];
+
   let q = new Queue();
   for (let row = 0; row < 4; row++) {
 
@@ -650,15 +654,16 @@ function swipeTilesV2(state, { payload: { direction } }) {
     const filledTilesCopy = [...filledTiles];
 
     while (rowTraverseCondition(cur)) {
-      console.log(cur);
-      if (tiles[row][cur].filled) {
+      const curTile = getTile(row, cur, swapRowCol);
+      if (curTile.filled) {
 
-        q.push(tiles[row][cur]);
+        q.push(curTile);
+
+        const posTile = getTile(row, pos, swapRowCol);
 
         if (q.getLength() === 2) {
           const front = q.pop();
           let shiftedTile = {...front, isNew: false, isMerged: false };
-
           if (front.value === q.peek().value) {
             const back = q.pop();
             shiftedTile = {
@@ -667,9 +672,8 @@ function swipeTilesV2(state, { payload: { direction } }) {
               filled: true,
               isMerged: true,
               key: generateKey(),
-              xAxisPos: tiles[row][pos].xAxisPos,
-              yAxisPos: tiles[row][pos].yAxisPos,
-              row: row, col: pos
+              xAxisPos: posTile.xAxisPos,
+              yAxisPos: posTile.yAxisPos,
             };
 
             // const backIndex = filledTiles.findIndex(el => el.row === back.row && el.col === back.col);
@@ -689,12 +693,12 @@ function swipeTilesV2(state, { payload: { direction } }) {
 
             filledTilesCopy[index] = {
               ...filledTiles[index],
-              xAxisPos: tiles[row][pos].xAxisPos,
-              yAxisPos: tiles[row][pos].yAxisPos,
+              xAxisPos: posTile.xAxisPos,
+              yAxisPos: posTile.yAxisPos,
               filled: true,
               isNew: false,
-              row: row,
-              col: pos,
+              row: swapRowCol? pos : row,
+              col: swapRowCol? row: pos,
               filledPtr: index
             };
 
@@ -711,14 +715,15 @@ function swipeTilesV2(state, { payload: { direction } }) {
     if (!q.isEmpty()) { //last cell
       let shiftedTile = {...q.pop(), isNew: false, isMerged: false };
       const index = shiftedTile.filledPtr;
+      const posTile = getTile(row, pos, swapRowCol);
       filledTilesCopy[index] = {
         ...filledTiles[index],
-        xAxisPos: tiles[row][pos].xAxisPos,
-        yAxisPos: tiles[row][pos].yAxisPos,
+        xAxisPos: posTile.xAxisPos,
+        yAxisPos: posTile.yAxisPos,
         filled: true,
         isNew: false,
-        row: row,
-        col: pos,
+        row: swapRowCol? pos : row,
+        col: swapRowCol? row: pos,
         filledPtr: index
       };
       shiftedTile = filledTilesCopy[index];
@@ -738,13 +743,20 @@ function swipeTilesV2(state, { payload: { direction } }) {
 
     while (rowTraverseCondition(pos)) {
       const emptyTile = {...empty};
-      emptyTile.yAxisPos = tiles[row][pos].yAxisPos;
-      emptyTile.xAxisPos = tiles[row][pos].xAxisPos;
+      const posTile = getTile(row, pos, swapRowCol);
+      emptyTile.yAxisPos = posTile.yAxisPos;
+      emptyTile.xAxisPos = posTile.xAxisPos;
       shiftedRow[pos] = emptyTile;
       pos = shift(pos);
     }
 
-    shiftedTiles.push(shiftedRow);
+    if (swapRowCol) {
+      for (let i = 0; i < 4; i++) {
+        shiftedTiles[i].push(shiftedRow[i]);
+      }
+    } else {
+      shiftedTiles.push(shiftedRow);
+    }
   }
 
   console.log("tiles: ", tiles);
