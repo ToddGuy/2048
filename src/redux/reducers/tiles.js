@@ -1,9 +1,9 @@
-import { SWIPE_TILES } from '../actionTypes';
+import { SWIPE_TILES, START_MOVING, STOP_MOVING } from '../actionTypes';
 
 import { Queue } from "../../utils/ds";
 import { range, generateKey } from "../../utils/helper";
 
-const initialState = new function(){
+const initialState = new (function(){
   const tiles = (function(){
     const ROWS = 4;
     const COLS = 4;
@@ -127,12 +127,13 @@ const initialState = new function(){
     return acc.concat(...row.reduce((accInner, col) => {
       if (col.filled) {
         col.filledPtr = i++;
-        console.log(accInner);
         accInner.push(col);
       }
       return accInner;
     }, [])) }, []);
-};
+
+  this.moving = false;
+})();
 
 
 function swipeTilesV2(state, { payload: { direction } }) {
@@ -153,28 +154,25 @@ function swipeTilesV2(state, { payload: { direction } }) {
   let swapRowCol = false;
   const getTile = (row, col, swap) => swap ? tiles[col][row] : tiles[row][col];
 
-  if (direction === 40) { //down
-    rowTraverseCondition = (x) => x > -1;
-    shift = (x) => --x;
-    traverse = 3;
-    swapRowCol = true;
-    // return swipeTilesDown(state);
-  } else if (direction === 37) { //left
-    rowTraverseCondition = (x) => x < 4;
-    shift = (x) => ++x;
-    traverse = 0;
-  } else if (direction === 38) { //up
-    rowTraverseCondition = (x) => x < 4;
-    shift = (x) => ++x;
-    traverse = 0;
-    swapRowCol = true;
-    // return swipeTilesUp(state);
-  } else if (direction === 39) { //right
-    rowTraverseCondition = (x) => x > -1;
-    shift = (x) => --x;
-    traverse = 3;
-  } else {
-    return state; //TODO
+  switch (direction) {
+    case 38: //up
+      swapRowCol = true;
+    case 37: //left
+      rowTraverseCondition = (x) => x < 4;
+      shift = (x) => ++x;
+      traverse = 0;
+      break;
+
+    case 40: //down
+      swapRowCol = true;
+    case 39: //right
+      rowTraverseCondition = (x) => x > -1;
+      shift = (x) => --x;
+      traverse = 3;
+      break;
+
+    default:
+      return state; //TODO
   }
 
   const shiftedTiles = swapRowCol ? [[], [], [], []] : [];
@@ -213,19 +211,15 @@ function swipeTilesV2(state, { payload: { direction } }) {
               col: swapRowCol? row: pos,
             };
 
-            // const backIndex = filledTiles.findIndex(el => el.row === back.row && el.col === back.col);
             const backIndex = back.filledPtr;
             filledTilesCopy[backIndex] = {...filledTiles[backIndex], filledPtr: -1, xAxisPos: shiftedTile.xAxisPos, yAxisPos: shiftedTile.yAxisPos, remove: true, filled: false};
 
-            // const frontIndex = filledTiles.findIndex(el => el.row === front.row && el.col === front.col);
             const frontIndex = front.filledPtr;
             filledTilesCopy[frontIndex] = {...filledTiles[frontIndex], filledPtr: -1, xAxisPos: shiftedTile.xAxisPos, yAxisPos: shiftedTile.yAxisPos, remove: true, filled: false};
 
-            shiftedTile.filledPtr = filledTilesCopy.length; console.log(row, pos, filledTilesCopy.length);
+            shiftedTile.filledPtr = filledTilesCopy.length;
             filledTilesCopy.push(shiftedTile);
           } else {
-            // const curItem = shiftedTile;
-            // const index = filledTiles.findIndex(el => el.row === curItem.row && el.col === curItem.col && !el.remove);
             const index = shiftedTile.filledPtr;
 
             filledTilesCopy[index] = {
@@ -296,9 +290,9 @@ function swipeTilesV2(state, { payload: { direction } }) {
     }
   }
 
-  console.log("tiles: ", tiles);
-  console.log("shiftedTiles: ", shiftedTiles);
-  console.log("filledTiles: ", filledTiles);
+  // console.log("prevTiles: ", tiles);
+  // console.log("shiftedTiles: ", shiftedTiles);
+  // console.log("filledTiles: ", filledTiles);
 
   return {tiles: shiftedTiles, filledTiles: filledTiles};
 }
@@ -306,7 +300,13 @@ function swipeTilesV2(state, { payload: { direction } }) {
 export default function(state = initialState, action) {
   switch (action.type) {
     case SWIPE_TILES:
-      return {...state, ...swipeTilesV2(state, action)};
+      return {...state, ...swipeTilesV2(state, action), move: true};
+
+    case START_MOVING:
+      return {...state, moving: true};
+
+    case STOP_MOVING:
+      return {...state, moving: false};
 
     default:
       return state;

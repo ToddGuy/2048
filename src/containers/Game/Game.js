@@ -7,24 +7,26 @@ import {swipeTiles} from "../../redux/actions";
 
 class Game extends Component {
 
+
   constructor(props) {
     super(props);
-    this.swipeTiles = this.swipeTiles.bind(this);
+    this.directionHandler = this.directionHandler.bind(this);
   }
 
-  swipeTiles(keyCode) {
-    this.props.swipeTiles(keyCode);
+  directionHandler(event) {
+    this.props.swipeTiles(event);
   }
 
   componentDidMount() {
-    document.addEventListener("keydown", this.swipeTiles);
+    document.addEventListener("keydown", this.directionHandler);
   }
 
   componentWillUnmount() {
-    document.removeEventListener("keydown", this.swipeTiles);
+    document.removeEventListener("keydown", this.directionHandler);
   }
 
   render() {
+    console.log("render");
     return (
       <div className={classes.Game} >
         <GameBoard />

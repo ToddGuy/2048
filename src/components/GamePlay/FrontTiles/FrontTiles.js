@@ -8,7 +8,7 @@ import {CSSTransition, TransitionGroup} from "react-transition-group";
 import "./FrontTile/FrontTileTransition.css";
 
 const frontTiles = ({ filledTiles }) => {
-
+  console.log("\n\nrender fronttiles\n\n");
   return (
     <div className={classes.FrontTiles}>
         { filledTiles.map(el => (
