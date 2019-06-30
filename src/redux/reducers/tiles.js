@@ -1,7 +1,7 @@
 import { SWIPE_TILES, START_MOVING, STOP_MOVING } from '../actionTypes';
 
 import { Queue } from "../../utils/ds";
-import { range, generateKey } from "../../utils/helper";
+import { rng, generateKey } from "../../utils/helper";
 
 const initialState = new (function(){
   const tiles = (function(){
@@ -31,13 +31,13 @@ const initialState = new (function(){
     }
 
     let fn = function() {
-      let row = range(0, 4);
-      let col = range(0, 4);
-      let value = range(2, 5);
+      let row = rng(0, 4);
+      let col = rng(0, 4);
+      let value = rng(2, 5);
       value = (value === 3) ? 2 : value;
 
       if(tiles[row][col].filled === true) {
-        const flip = range(0, 1);
+        const flip = rng(0, 1);
         let rowRange = 0;
         let colRange = 0;
 
@@ -46,8 +46,8 @@ const initialState = new (function(){
         } else {
           colRange = 1;
         }
-        row = (row + range(rowRange,3)) % 4;
-        col = (col + range(colRange, 3)) % 4;
+        row = (row + rng(rowRange,3)) % 4;
+        col = (col + rng(colRange, 3)) % 4;
       }
 
       tiles[row][col] = {
