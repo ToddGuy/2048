@@ -2,16 +2,14 @@
 
 export const rng = (min, max, random) => Math.floor((random === undefined ? Math.random() : random )* (max - min)) + min;
 
-export const range = (start, end) => [...Array(end - start).keys()].reduce((acc, curr, i) => {
-  // acc[i + start] =
-}, {});
+export const range = (start, end) => [...Array(end - start).keys()].map((_, i) => i + start);
 
 export const generateKey = (function() {
   let i = 0;
   return () => i++;
 })();
 
-export const canMove = (tiles, direction) => { //need this for cases where tiles are up against edge and you press towards the edge really fast and then another direction; without this it won't move
+export const canMove = (tiles, direction) => {
 
   let rowTraverseCondition;
   let colTraverseCondition;
@@ -20,7 +18,6 @@ export const canMove = (tiles, direction) => { //need this for cases where tiles
   let startRow;
   let startCol;
   let getTile;
-
 
   switch (direction) {
     case 38: //up
@@ -65,7 +62,7 @@ export const canMove = (tiles, direction) => { //need this for cases where tiles
   return false;
 };
 
-export const getRandomTilePos = function(tiles) {
+export const getRandomEmptyTile = function(tiles) {
   const emptyTiles = tiles.reduce((rowObj, row, rowIndex) => {
     const reduced = row.reduce((acc, cur, colIndex) => {
       if (!cur.filled) {
@@ -79,4 +76,16 @@ export const getRandomTilePos = function(tiles) {
 
     return rowObj;
   }, {});
+
+  const rows = Object.keys(emptyTiles);
+
+  if (rows.length === 0) {
+    return -1;
+  }
+
+  const randRowIndex = rows[rng(0, rows.length)];
+  const randRow = emptyTiles[randRowIndex];
+  const randColIndex = randRow[rng(0, randRow.length)];
+
+  return tiles[randRowIndex][randColIndex];
 };

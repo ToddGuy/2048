@@ -1,11 +1,11 @@
-import { SWIPE_TILES, START_MOVING, STOP_MOVING } from "./actionTypes";
-import {canMove, getRandomTilePos} from "../utils/helper";
+import {SWIPE_TILES, START_MOVING, STOP_MOVING} from "./actionTypes";
+import {canMove} from "../utils/helper";
 
-export const swipeTilesActionCreator = direction => {
+export const swipeTiles = (direction, randomNum) => {
   return {
     type: SWIPE_TILES,
     payload: {
-      direction: direction
+      direction, randomNum
     }
   }
 };
@@ -22,24 +22,21 @@ export const stopMoving = () => {
   }
 };
 
-export const swipeTiles = direction => {
+export const swipeTilesSequence = direction => {
   return (dispatch, getState) => {
     const { moving, tiles } = getState();
     if (moving) {
       return;
     }
 
-    //if can't move, return
-
+    /* need this for cases where tiles are up against edge and you press towards the edge
+     * really fast and then another direction; without this it won't move
+     */
     if (canMove(tiles, direction)) {
       dispatch(startMoving());
-      dispatch(swipeTilesActionCreator((direction)));
-      // let { tiles } = getState();
-      // getRandomTilePos(tiles);
+      dispatch(swipeTiles(direction, Math.random()));
       setTimeout(() => dispatch(stopMoving()), 100);
     }
-
-
   };
 };
 

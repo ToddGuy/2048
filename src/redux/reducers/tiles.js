@@ -1,7 +1,7 @@
-import { SWIPE_TILES, START_MOVING, STOP_MOVING } from '../actionTypes';
+import {SWIPE_TILES, START_MOVING, STOP_MOVING, FILL_RANDOM_TILE, REMOVE_TILES} from '../actionTypes';
 
 import { Queue } from "../../utils/ds";
-import { rng, generateKey } from "../../utils/helper";
+import {rng, generateKey, canMove} from "../../utils/helper";
 
 const initialState = new (function(){
   const tiles = (function(){
@@ -61,8 +61,8 @@ const initialState = new (function(){
       };
     };
 
-    for (let i = 0 ; i < 16; i++)
-      fn();
+    // for (let i = 0 ; i < 16; i++)
+    //   fn();
 
     tiles[0][0] = {
       ...tiles[0][0],
@@ -136,17 +136,15 @@ const initialState = new (function(){
 })();
 
 
-function swipeTilesV2(state, { payload: { direction } }) {
-
-  console.log("direction: ", direction);
+function swipeTiles(state, { payload: { direction, randomNum } }) {
 
   const tiles = state.tiles;
-  let filledTiles = state.filledTiles.filter((el) => !el.remove);
+  let filledTiles = [...state.filledTiles];//.filter((el) => !el.remove);
 
-  filledTiles.forEach((el, index) => {
-    tiles[el.row][el.col].filledPtr = index;
-    el.filledPtr = index;
-  });
+  // filledTiles.forEach((el, index) => {
+  //   tiles[el.row][el.col].filledPtr = index;
+  //   el.filledPtr = index;
+  // });
 
   let rowTraverseCondition;
   let shift;
@@ -176,6 +174,7 @@ function swipeTilesV2(state, { payload: { direction } }) {
   }
 
   const shiftedTiles = swapRowCol ? [[], [], [], []] : [];
+  const emptyTiles = [];
 
   let q = new Queue();
   for (let row = 0; row < 4; row++) {
@@ -275,9 +274,14 @@ function swipeTilesV2(state, { payload: { direction } }) {
     while (rowTraverseCondition(pos)) {
       const emptyTile = {...empty};
       const posTile = getTile(row, pos, swapRowCol);
+      emptyTile.row = posTile.row;
+      emptyTile.col = posTile.col;
       emptyTile.yAxisPos = posTile.yAxisPos;
       emptyTile.xAxisPos = posTile.xAxisPos;
       shiftedRow[pos] = emptyTile;
+
+      emptyTiles.push(emptyTile);
+
       pos = shift(pos);
     }
 
@@ -290,23 +294,60 @@ function swipeTilesV2(state, { payload: { direction } }) {
     }
   }
 
-  // console.log("prevTiles: ", tiles);
-  // console.log("shiftedTiles: ", shiftedTiles);
-  // console.log("filledTiles: ", filledTiles);
 
-  return {tiles: shiftedTiles, filledTiles: filledTiles};
+  const randomTile = {...emptyTiles[rng(0, emptyTiles.length, randomNum)]};
+
+  randomTile.key = generateKey();
+  randomTile.isNew = true;
+  randomTile.filledPtr = filledTiles.length;
+  randomTile.value = 2;
+  randomTile.filled = true;
+
+  console.log(randomTile);
+  shiftedTiles[randomTile.row][randomTile.col] = randomTile;
+
+  filledTiles.push(randomTile);
+
+  let gameOver = true;
+
+  if (filledTiles.length === 16) {
+
+    let direction = 37;
+    while (gameOver && direction < 41) {
+      if (canMove(shiftedTiles, direction)) {
+        gameOver = false;
+      }
+      direction++;
+    }
+  } else {
+    gameOver = false;
+  }
+
+  console.log("gameover = " + gameOver);
+  return {tiles: shiftedTiles, filledTiles: filledTiles, gameOver};
+}
+
+function removeTiles(state) {
+  let tiles = [...state.tiles];
+  let filledTiles = state.filledTiles.filter((el) => !el.remove);
+
+  filledTiles.forEach((el, index) => {
+    tiles[el.row][el.col].filledPtr = index;
+    el.filledPtr = index;
+  });
+  return {tiles: tiles, filledTiles: filledTiles};
 }
 
 export default function(state = initialState, action) {
   switch (action.type) {
     case SWIPE_TILES:
-      return {...state, ...swipeTilesV2(state, action), move: true};
+      return {...state, ...swipeTiles(state, action), move: true};
 
     case START_MOVING:
       return {...state, moving: true};
 
     case STOP_MOVING:
-      return {...state, moving: false};
+      return {...state, ...removeTiles(state), moving: false};
 
     default:
       return state;
