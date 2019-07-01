@@ -1,5 +1,7 @@
 //helper functions
 
+import {directions} from "./data";
+
 export const rng = (min, max, random) => Math.floor((random === undefined ? Math.random() : random )* (max - min)) + min;
 
 export const range = (start, end) => [...Array(end - start).keys()].map((_, i) => i + start);
@@ -19,10 +21,12 @@ export const canMove = (tiles, direction) => {
   let startCol;
   let getTile;
 
+  const {up, left, down, right} = directions;
+
   switch (direction) {
-    case 38: //up
+    case up:
       swapRowCol = true;
-    case 37: //left
+    case left:
       rowTraverseCondition = (row) => row > -1;
       colTraverseCondition = (col) => col > 0;
       shift = (num) => --num;
@@ -33,9 +37,9 @@ export const canMove = (tiles, direction) => {
         { tile: tiles[row][col], nextTile: tiles[row][col - 1] };
       break;
 
-    case 40: //down
+    case down:
       swapRowCol = true;
-    case 39: //right
+    case right: //right
       rowTraverseCondition = (row) => row < 4;
       colTraverseCondition = (col) => col < 3;
       shift = (num) => ++num;
@@ -62,30 +66,3 @@ export const canMove = (tiles, direction) => {
   return false;
 };
 
-export const getRandomEmptyTile = function(tiles) {
-  const emptyTiles = tiles.reduce((rowObj, row, rowIndex) => {
-    const reduced = row.reduce((acc, cur, colIndex) => {
-      if (!cur.filled) {
-        acc.push(colIndex);
-      }
-      return acc;
-    }, []);
-
-    if (reduced.length !== 0)
-      rowObj[rowIndex] = reduced;
-
-    return rowObj;
-  }, {});
-
-  const rows = Object.keys(emptyTiles);
-
-  if (rows.length === 0) {
-    return -1;
-  }
-
-  const randRowIndex = rows[rng(0, rows.length)];
-  const randRow = emptyTiles[randRowIndex];
-  const randColIndex = randRow[rng(0, randRow.length)];
-
-  return tiles[randRowIndex][randColIndex];
-};

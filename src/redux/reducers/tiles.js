@@ -2,6 +2,7 @@ import {SWIPE_TILES, START_MOVING, STOP_MOVING, FILL_RANDOM_TILE, REMOVE_TILES} 
 
 import { Queue } from "../../utils/ds";
 import {rng, generateKey, canMove} from "../../utils/helper";
+import {directions} from "../../utils/data";
 
 const initialState = new (function(){
   const tiles = (function(){
@@ -152,18 +153,20 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
   let swapRowCol = false;
   const getTile = (row, col, swap) => swap ? tiles[col][row] : tiles[row][col];
 
+  const {up, left, down, right} = directions;
+
   switch (direction) {
-    case 38: //up
+    case up:
       swapRowCol = true;
-    case 37: //left
+    case left:
       rowTraverseCondition = (x) => x < 4;
       shift = (x) => ++x;
       traverse = 0;
       break;
 
-    case 40: //down
+    case down:
       swapRowCol = true;
-    case 39: //right
+    case right:
       rowTraverseCondition = (x) => x > -1;
       shift = (x) => --x;
       traverse = 3;
@@ -312,12 +315,13 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
 
   if (filledTiles.length === 16) {
 
-    let direction = 37;
-    while (gameOver && direction < 41) {
-      if (canMove(shiftedTiles, direction)) {
+    let directionList = Object.values(directions);
+    let i = 0;
+    while (gameOver && i < directionList.length) {
+      if (canMove(shiftedTiles, directionList[i])) {
         gameOver = false;
       }
-      direction++;
+      i++;
     }
   } else {
     gameOver = false;

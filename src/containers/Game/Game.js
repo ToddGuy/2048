@@ -5,6 +5,7 @@ import GameBoard from '../../components/GamePlay/GameBoard/GameBoard';
 import {connect} from "react-redux";
 import {swipeTilesSequence} from "../../redux/actions";
 import {range} from "../../utils/helper";
+import {directions} from "../../utils/data";
 
 class Game extends Component {
 
@@ -15,20 +16,35 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
-    this.directionHandler = this.directionHandler.bind(this);
-
     console.log(this.directionKeyCodes);
+    console.log(directions);
+    this.directionHandler = this.directionHandler.bind(this);
   }
 
   directionHandler(event) {
     if (this.directionKeyCodes[event.keyCode]) {
-      this.props.swipeTiles(event);
+      this.props.swipeTiles(event.keyCode);
     }
   }
 
   componentDidMount() {
     document.addEventListener("keydown", this.directionHandler);
-    document.addEventListener()
+
+    const mountMoveHandler = function(event) {
+      console.log(event.x, event.y);
+    };
+
+    document.addEventListener("mousedown", (event) => {
+      console.log(event.x, event.y);
+      document.addEventListener("mousemove", mountMoveHandler);
+    });
+
+    document.addEventListener("mouseup", () => {
+      console.log("removing", document.onmousedown);
+      console.log("removing", document.onmousemove);
+      document.removeEventListener("mousemove", mountMoveHandler);
+      console.log("removing", document.onmousemove);
+    })
   }
 
   componentWillUnmount() {
@@ -47,7 +63,7 @@ class Game extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    swipeTiles: (event) => dispatch(swipeTilesSequence(event.keyCode))
+    swipeTiles: direction => dispatch(swipeTilesSequence(direction))
   };
 };
 
