@@ -1,11 +1,11 @@
 import {SWIPE_TILES, START_MOVING, STOP_MOVING} from "./actionTypes";
-import {canMove} from "../utils/helper";
+import {canMove, chooseTwoOrFour} from "../utils/data";
 
-export const swipeTiles = (direction, randomNum) => {
+export const swipeTiles = (direction, randomLocation, twoOrFour) => {
   return {
     type: SWIPE_TILES,
     payload: {
-      direction, randomNum
+      direction, randomLocation, twoOrFour
     }
   }
 };
@@ -29,12 +29,12 @@ export const swipeTilesSequence = direction => {
       return;
     }
 
-    /* need this for cases where tiles are up against edge and you press towards the edge
+    /* need this canMove for cases where tiles are up against edge and you press towards the edge
      * really fast and then another direction; without this it won't move
      */
     if (canMove(tiles, direction)) {
       dispatch(startMoving());
-      dispatch(swipeTiles(direction, Math.random()));
+      dispatch(swipeTiles(direction, Math.random(), chooseTwoOrFour(Math.random())));
       setTimeout(() => dispatch(stopMoving()), 100);
     }
   };

@@ -1,8 +1,8 @@
 import {SWIPE_TILES, START_MOVING, STOP_MOVING, FILL_RANDOM_TILE, REMOVE_TILES} from '../actionTypes';
 
 import { Queue } from "../../utils/ds";
-import {rng, generateKey, canMove} from "../../utils/helper";
-import {directions} from "../../utils/data";
+import {rng, generateKey} from "../../utils/helper";
+import {directions, canMove} from "../../utils/data";
 
 const initialState = new (function(){
   const tiles = (function(){
@@ -103,22 +103,6 @@ const initialState = new (function(){
       in: true
     };
 
-    // tiles[1][0] = {
-    //   ...tiles[1][0],
-    //   filled: true,
-    //   value: 4,
-    //   isNew: true,
-    //   isMerged: false
-    // };
-    //
-    // tiles[3][0] = {
-    //   ...tiles[3][0],
-    //   filled: true,
-    //   value: 4,
-    //   isNew: true,
-    //   isMerged: false
-    // };
-
     return tiles;
   })();
 
@@ -137,15 +121,10 @@ const initialState = new (function(){
 })();
 
 
-function swipeTiles(state, { payload: { direction, randomNum } }) {
+function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }) {
 
   const tiles = state.tiles;
-  let filledTiles = [...state.filledTiles];//.filter((el) => !el.remove);
-
-  // filledTiles.forEach((el, index) => {
-  //   tiles[el.row][el.col].filledPtr = index;
-  //   el.filledPtr = index;
-  // });
+  let filledTiles = [...state.filledTiles];
 
   let rowTraverseCondition;
   let shift;
@@ -173,11 +152,12 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
       break;
 
     default:
-      return state; //TODO
+      throw "Incorrect direction.";
   }
 
   const shiftedTiles = swapRowCol ? [[], [], [], []] : [];
   const emptyTiles = [];
+  let numFilledTiles = filledTiles.length;
 
   let q = new Queue();
   for (let row = 0; row < 4; row++) {
@@ -206,6 +186,7 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
               value: front.value * 2,
               filled: true,
               isMerged: true,
+              isNew: false,
               key: generateKey(),
               xAxisPos: posTile.xAxisPos,
               yAxisPos: posTile.yAxisPos,
@@ -221,6 +202,8 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
 
             shiftedTile.filledPtr = filledTilesCopy.length;
             filledTilesCopy.push(shiftedTile);
+
+            numFilledTiles--; //subtract one for every 2 replaced with 1.
           } else {
             const index = shiftedTile.filledPtr;
 
@@ -297,23 +280,28 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
     }
   }
 
+  let gameOver = false;
 
-  const randomTile = {...emptyTiles[rng(0, emptyTiles.length, randomNum)]};
+  if (numFilledTiles < 16) {
+    //place random tile.
+    const randomTile = {
+      ...emptyTiles[rng(0, emptyTiles.length, randomLocation)],
+      key: generateKey(),
+      filled: true,
+      isNew: true,
+      filledPtr: filledTiles.length,
+      value: 2048,
+    };
 
-  randomTile.key = generateKey();
-  randomTile.isNew = true;
-  randomTile.filledPtr = filledTiles.length;
-  randomTile.value = 2;
-  randomTile.filled = true;
+    shiftedTiles[randomTile.row][randomTile.col] = randomTile;
 
-  console.log(randomTile);
-  shiftedTiles[randomTile.row][randomTile.col] = randomTile;
+    filledTiles.push(randomTile);
 
-  filledTiles.push(randomTile);
+    numFilledTiles++;
+  }
 
-  let gameOver = true;
-
-  if (filledTiles.length === 16) {
+  if (numFilledTiles === 16) {
+    gameOver = true;
 
     let directionList = Object.values(directions);
     let i = 0;
@@ -323,8 +311,6 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
       }
       i++;
     }
-  } else {
-    gameOver = false;
   }
 
   console.log("gameover = " + gameOver);
@@ -332,8 +318,13 @@ function swipeTiles(state, { payload: { direction, randomNum } }) {
 }
 
 function removeTiles(state) {
-  let tiles = [...state.tiles];
   let filledTiles = state.filledTiles.filter((el) => !el.remove);
+
+  if (filledTiles.length === state.filledTiles.length) { //nothing removed, no need to re-render
+    return state;
+  }
+
+  let tiles = [...state.tiles];
 
   filledTiles.forEach((el, index) => {
     tiles[el.row][el.col].filledPtr = index;

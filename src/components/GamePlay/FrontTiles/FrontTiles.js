@@ -4,11 +4,8 @@ import { connect } from 'react-redux';
 
 import FrontTile from './FrontTile/FrontTile';
 import classes from './FrontTiles.module.css';
-import {CSSTransition, TransitionGroup} from "react-transition-group";
-import "./FrontTile/FrontTileTransition.css";
 
 const frontTiles = ({ filledTiles }) => {
-  console.log("\n\nrender fronttiles\n\n");
   return (
     <div className={classes.FrontTiles}>
         { filledTiles.map(el => (
@@ -18,9 +15,6 @@ const frontTiles = ({ filledTiles }) => {
               key={el.key}>
               {el.value}
             </FrontTile>
-
-          // <CSSTransition in={el.in} appear={true} timeout={10000} classNames="tile" key={el.key} unmountOnExit>
-          // </CSSTransition>
           ))
         }
     </div>

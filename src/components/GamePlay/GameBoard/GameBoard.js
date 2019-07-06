@@ -5,7 +5,6 @@ import BackTiles from "../BackTiles/BackTiles";
 import FrontTiles from "../FrontTiles/FrontTiles";
 
 const gameBoard = props => {
-
   return (
     <div className={classes.GameBoard}>
       <BackTiles />
