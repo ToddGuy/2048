@@ -2,10 +2,10 @@ import React, { Component } from 'react';
 
 import classes from './Game.module.css';
 import GameBoard from '../../components/GamePlay/GameBoard/GameBoard';
-import {connect} from "react-redux";
-import {swipeTilesSequence} from "../../redux/actions";
-import {range} from "../../utils/helper";
-import {directions} from "../../utils/data";
+import { connect } from "react-redux";
+import { swipeTilesSequence } from "../../redux/actions";
+import { range } from "../../utils/helper";
+import { directions } from "../../utils/data";
 
 class Game extends Component {
 

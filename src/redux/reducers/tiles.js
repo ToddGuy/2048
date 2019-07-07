@@ -1,8 +1,8 @@
-import {SWIPE_TILES, START_MOVING, STOP_MOVING, FILL_RANDOM_TILE, REMOVE_TILES} from '../actionTypes';
+import {SWIPE_TILES, START_MOVING, STOP_MOVING} from '../actionTypes';
 
 import { Queue } from "../../utils/ds";
-import {rng, generateKey} from "../../utils/helper";
-import {directions, canMove} from "../../utils/data";
+import { rng, generateKey } from "../../utils/helper";
+import { directions, canMove } from "../../utils/data";
 
 const initialState = new (function(){
   const tiles = (function(){
@@ -65,29 +65,29 @@ const initialState = new (function(){
     // for (let i = 0 ; i < 16; i++)
     //   fn();
 
-    tiles[0][0] = {
-      ...tiles[0][0],
-      filled: true,
-      value: 2,
-      isNew: true,
-      isMerged: false,
-      key: generateKey(),
-    };
+    // tiles[0][0] = {
+    //   ...tiles[0][0],
+    //   filled: true,
+    //   value: 4,
+    //   isNew: true,
+    //   isMerged: false,
+    //   key: generateKey(),
+    // };
 
-    tiles[0][1] = {
-      ...tiles[0][1],
-      filled: true,
-      value: 4,
-      isNew: true,
-      isMerged: false,
-      key: generateKey(),
-      in: true
-    };
-
+    // tiles[0][1] = {
+    //   ...tiles[0][1],
+    //   filled: true,
+    //   value: 2,
+    //   isNew: true,
+    //   isMerged: false,
+    //   key: generateKey(),
+    //   in: true
+    // };
+    //
     tiles[0][2] = {
       ...tiles[0][2],
       filled: true,
-      value: 4,
+      value: 2,
       isNew: true,
       isMerged: false,
       key: generateKey(),
@@ -96,12 +96,28 @@ const initialState = new (function(){
     tiles[0][3] = {
       ...tiles[0][3],
       filled: true,
-      value: 4,
+      value: 2,
       isNew: true,
       isMerged: false,
       key: generateKey(),
       in: true
     };
+
+    // let p = 3;
+    // console.log(tiles);
+    // for (let i = 0; i < 4; i++) {
+    //   for (let j = 0; j < 4; j++) {
+    //     tiles[i][j] = {
+    //       ...tiles[i][j],
+    //       filled: true,
+    //       value: Math.pow(2, p++),
+    //       isNew: false,
+    //       isMerged: true,
+    //       key: generateKey(),
+    //       in: true
+    //     };
+    //   }
+    // }
 
     return tiles;
   })();
@@ -213,6 +229,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
               yAxisPos: posTile.yAxisPos,
               filled: true,
               isNew: false,
+              isMerged: false,
               row: swapRowCol? pos : row,
               col: swapRowCol? row: pos,
               filledPtr: index
@@ -238,12 +255,12 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
         yAxisPos: posTile.yAxisPos,
         filled: true,
         isNew: false,
+        isMerged: false,
         row: swapRowCol ? pos : row,
         col: swapRowCol ? row: pos,
         filledPtr: index
       };
-      shiftedTile = filledTilesCopy[index];
-      shiftedRow[pos] = {...shiftedTile, isNew: false, isMerged: false};
+      shiftedRow[pos] = filledTilesCopy[index];
       pos = shift(pos);
     }
 
@@ -290,9 +307,8 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
       filled: true,
       isNew: true,
       filledPtr: filledTiles.length,
-      value: 2048,
+      value: twoOrFour,
     };
-
     shiftedTiles[randomTile.row][randomTile.col] = randomTile;
 
     filledTiles.push(randomTile);

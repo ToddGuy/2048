@@ -1,4 +1,4 @@
-import {rng} from "./helper";
+import {range, rng} from "./helper";
 
 export const directions = {
   left: 37,
@@ -70,4 +70,35 @@ export const canMove = (tiles, direction) => {
   }
 
   return false;
+};
+
+export const colorMap = {
+  colorArr: (function() {
+    const arr = Array(10);
+    const dark = "#776e65";
+    const light = "#ffffff";
+    arr[1] = {background: "#ece4d9", color: dark};
+    arr[2] = {background: "#ede0c8", color: dark};
+    arr[3] = {background: "#f2b179", color: light};
+    arr[4] = {background: "#f59563", color: light};
+    arr[5] = {background: "#f67c5f", color: light};
+    arr[6] = {background: "#f65e3b", color: light};
+    arr[7] = {background: "#eddb75", color: light};
+    arr[8] = {background: "#edcf72",  color: light};
+    arr[9] = {background: "#edcf59", color: light};
+    arr[10] = {background: "#b0ed8f", color: light};
+    arr[11] = {background: "#75c352", color: light};
+    arr[12] = {background: "#52a026", color: light};
+    arr[13] = {background: "#79faff", color: light};
+    arr[14] = {background: "#6de3f8", color: light};
+    arr[15] = {background: "#64d4ee", color: light};
+    arr[16] = {background: "#ee93ee", color: light};
+    arr[17] = {background: "#df84e5", color: light};
+    arr[18] = {background: "#c26be2", color: light};
+    return arr;
+  })(),
+  getColor: function(powerOf2) {
+    const color = this.colorArr[Math.log2(powerOf2)];
+    return color === undefined ? {background: "#83E1EC", color: "white"} : color;
+  }
 };

@@ -10,6 +10,7 @@ const frontTiles = ({ filledTiles }) => {
     <div className={classes.FrontTiles}>
         { filledTiles.map(el => (
             <FrontTile
+              isMerged = {el.isMerged}
               isNew = {el.isNew}
               style={{transform: `translateX(${el.xAxisPos}px) translateY(${el.yAxisPos}px)`}}
               key={el.key}>
