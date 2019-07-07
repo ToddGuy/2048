@@ -1,4 +1,4 @@
-import {range, rng} from "./helper";
+import {createKey, rng} from "./utility";
 
 export const directions = {
   left: 37,
@@ -13,8 +13,37 @@ export function chooseTwoOrFour(randomMultiplier) {
   return arr[rng(0, arr.length, randomMultiplier)];
 }
 
-export function createNewFilledTile() {
+export function markForShift(tile, index, posTile) {
+  return {
+    ...tile,
+    xAxisPos: posTile.xAxisPos,
+    yAxisPos: posTile.yAxisPos,
+    filled: true,
+    isNew: false,
+    isMerged: false,
+    filledPtr: index
+  };
+}
 
+export function markForRemoval(tile, shiftedTile) {
+  return {
+    ...tile,
+    filledPtr: -1,
+    xAxisPos: shiftedTile.xAxisPos, yAxisPos: shiftedTile.yAxisPos,
+    remove: true, filled: false
+  };
+}
+
+const empty = {
+  filled: false,
+  isNew: false,
+  isMerged: false,
+  value: -1,
+  filledPtr: -1
+};
+
+export function createEmptyTile() {
+  return {...empty};
 }
 
 export const canMove = (tiles, direction) => {

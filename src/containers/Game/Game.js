@@ -4,7 +4,7 @@ import classes from './Game.module.css';
 import GameBoard from '../../components/GamePlay/GameBoard/GameBoard';
 import { connect } from "react-redux";
 import { swipeTilesSequence } from "../../redux/actions";
-import { range } from "../../utils/helper";
+import { range } from "../../utils/utility";
 import { directions } from "../../utils/data";
 
 class Game extends Component {

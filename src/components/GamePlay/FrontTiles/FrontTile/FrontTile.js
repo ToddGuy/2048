@@ -16,7 +16,6 @@ export default class FrontTile extends React.Component {
 
     if (this.props.isMerged) {
       innerClasses.push(classes.MergedTile);
-      console.log(this.props.children, innerClasses);
     }
 
     if (len > 3) {
