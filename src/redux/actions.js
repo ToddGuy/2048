@@ -1,4 +1,4 @@
-import {SWIPE_TILES, START_MOVING, STOP_MOVING} from "./actionTypes";
+import {SWIPE_TILES, START_MOVING, STOP_MOVING, INIT_TILES} from "./actionTypes";
 import {canMove, chooseTwoOrFour} from "../utils/data";
 
 export const swipeTiles = (direction, randomLocation, twoOrFour) => {
@@ -22,7 +22,7 @@ export const stopMoving = () => {
   }
 };
 
-export const swipeTilesSequence = direction => {
+export const swipeTilesSequence = (direction, [randomLocation, twoOrFourRand]) => {
   return (dispatch, getState) => {
     const { moving, tiles } = getState();
     if (moving) {
@@ -34,11 +34,19 @@ export const swipeTilesSequence = direction => {
      */
     if (canMove(tiles, direction)) {
       dispatch(startMoving());
-      dispatch(swipeTiles(direction, Math.random(), chooseTwoOrFour(Math.random())));
+      dispatch(swipeTiles(direction, randomLocation, chooseTwoOrFour(twoOrFourRand)));
       setTimeout(() => dispatch(stopMoving()), 100);
     }
   };
 };
 
-
-
+export const initTiles = (rands) => {
+  const [rowRand0, colRand0, rowRand1, colRand1, twoOrFourRand0, twoOrFourRand1] = rands;
+  return {
+    type: INIT_TILES,
+    payload:  {
+      rowRand0, colRand0, rowRand1, colRand1,
+      twoOrFour0: chooseTwoOrFour(twoOrFourRand0), twoOrFour1: chooseTwoOrFour(twoOrFourRand1)
+    }
+  }
+};

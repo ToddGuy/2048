@@ -46,6 +46,15 @@ export function createEmptyTile() {
   return {...empty};
 }
 
+export function createNewTile(baseTile, filledPtr, value) {
+    return {
+      ...baseTile,
+      key: createKey(),
+      filled: true, isNew: true, isMerged: false,
+      filledPtr, value
+    };
+}
+
 export const canMove = (tiles, direction) => {
 
   let rowTraverseCondition;

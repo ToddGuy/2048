@@ -1,8 +1,8 @@
-import {SWIPE_TILES, START_MOVING, STOP_MOVING} from '../actionTypes';
+import {SWIPE_TILES, START_MOVING, STOP_MOVING, INIT_TILES} from '../actionTypes';
 
 import { Queue } from "../../utils/ds";
 import {rng, createKey, range} from "../../utils/utility";
-import {directions, canMove, markForRemoval, markForShift, createEmptyTile} from "../../utils/data";
+import {directions, canMove, markForRemoval, markForShift, createEmptyTile, createNewTile} from "../../utils/data";
 
 const initialState = new (function(){
   const tiles = (function(){
@@ -31,82 +31,13 @@ const initialState = new (function(){
       yAxisPos += 85;
     }
 
-    let fn = function() {
-      let row = rng(0, 4);
-      let col = rng(0, 4);
-      let value = rng(2, 5);
-      value = (value === 3) ? 2 : value;
-
-      if(tiles[row][col].filled === true) {
-        const flip = rng(0, 1);
-        let rowRange = 0;
-        let colRange = 0;
-
-        if (flip === 0) {
-          rowRange = 1;
-        } else {
-          colRange = 1;
-        }
-        row = (row + rng(rowRange,3)) % 4;
-        col = (col + rng(colRange, 3)) % 4;
-      }
-
-      tiles[row][col] = {
-        ...tiles[row][col],
-        filled: true,
-        value,
-        isNew: true,
-        isMerged: false,
-        key: createKey(),
-        filledPtr: -1
-      };
-    };
-
-    const arr = [...Array(4)].map(() => range(0, 4));
-    let row = rng(0, arr.length);
-    let col = rng(0, arr[row].length);
-
-    tiles[row][col] = {
-      ...tiles[row][col],
-      filled: true,
-      value: 2,
-      isNew: true,
-      isMerged: false,
-      key: createKey(),
-      filledPtr: -1
-    };
-
-    arr[row].splice(col, col);
-
-    row = rng(0, arr.length);
-    col = rng(0, arr[row].length);
-
-    tiles[row][col] = {
-      ...tiles[row][col],
-      filled: true,
-      value: 2,
-      isNew: true,
-      isMerged: false,
-      key: createKey(),
-      filledPtr: -1
-    };
-
-
     return tiles;
   })();
 
   this.tiles = tiles;
-  let i = 0; //position in list
-  this.filledTiles = tiles.reduce((acc, row) => {
-    return acc.concat(...row.reduce((accInner, col) => {
-      if (col.filled) {
-        col.filledPtr = i++;
-        accInner.push(col);
-      }
-      return accInner;
-    }, [])) }, []);
-
+  this.filledTiles = [];
   this.moving = false;
+  this.gameOver = false;
 })();
 
 
@@ -236,14 +167,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
   if (numFilledTiles < 16) {
     //place random tile.
     const item = emptyTiles[rng(0, emptyTiles.length, randomLocation)];
-    const randomTile = {
-      ...item.emptyTile,
-      key: createKey(),
-      filled: true,
-      isNew: true,
-      filledPtr: filledTiles.length,
-      value: twoOrFour,
-    };
+    const randomTile = createNewTile(item.emptyTile, filledTiles.length, twoOrFour);
     shiftedTiles[item.row][item.col] = randomTile;
     filledTiles.push(randomTile);
 
@@ -279,7 +203,32 @@ function removeTiles(state) {
   filledTiles.forEach((el, index) => {
     el.filledPtr = index;
   });
-  return {tiles, filledTiles: filledTiles};
+  return {tiles, filledTiles};
+}
+
+function initTiles(state, {payload: {rowRand0, colRand0, rowRand1, colRand1, twoOrFour0, twoOrFour1}}) {
+  const tiles = state.tiles;
+  const filledTiles = [];
+
+  const arr = [...Array(4)].map(() => range(0, 4));
+
+  let row = rng(0, arr.length, rowRand0);
+  let col = arr[row][rng(0, arr[row].length, colRand0)];
+
+
+  tiles[row][col] = createNewTile(tiles[row][col], 0, twoOrFour0);
+  filledTiles.push(tiles[row][col]);
+
+  arr[row].splice(col, 1);
+
+  row = rng(0, arr.length, rowRand1);
+  col = arr[row][rng(0, arr[row].length, colRand1)];
+
+
+  tiles[row][col] = createNewTile(tiles[row][col], 1, twoOrFour1);
+  filledTiles.push(tiles[row][col]);
+
+  return { tiles, filledTiles }
 }
 
 export default function(state = initialState, action) {
@@ -292,6 +241,9 @@ export default function(state = initialState, action) {
 
     case STOP_MOVING:
       return {...state, ...removeTiles(state), moving: false};
+
+    case INIT_TILES:
+      return {...state, ...initTiles(state, action)};
 
     default:
       return state;

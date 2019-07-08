@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import classes from './Game.module.css';
 import GameBoard from '../../components/GamePlay/GameBoard/GameBoard';
 import { connect } from "react-redux";
-import { swipeTilesSequence } from "../../redux/actions";
+import {initTiles, swipeTilesSequence} from "../../redux/actions";
 import { range } from "../../utils/utility";
 import { directions } from "../../utils/data";
 
@@ -23,7 +23,7 @@ class Game extends Component {
 
   directionHandler(event) {
     if (this.directionKeyCodes[event.keyCode]) {
-      this.props.swipeTiles(event.keyCode);
+      this.props.swipeTiles(event.keyCode, [...Array(2)].map(() => Math.random()));
     }
   }
 
@@ -58,6 +58,8 @@ class Game extends Component {
   };
 
   componentDidMount() {
+    this.props.initTiles([...Array(6)].map(() => Math.random()));
+
     document.addEventListener("keydown", this.directionHandler);
     this.removeListenerCallbackList.push(() => document.removeEventListener("keydown", this.directionHandler));
 
@@ -115,7 +117,8 @@ class Game extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    swipeTiles: direction => dispatch(swipeTilesSequence(direction))
+    swipeTiles: (direction, rands) => dispatch(swipeTilesSequence(direction, rands)),
+    initTiles: (rands) => dispatch(initTiles(rands))
   };
 };
 
