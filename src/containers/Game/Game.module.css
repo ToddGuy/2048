@@ -2,8 +2,15 @@
     position: center;
     display: flex;
     flex-flow: column nowrap;
-    justify-content: center;
+    justify-content: flex-start
+;
     align-items: center;
     height: 500px;
     width: 500px;
+}
+
+.Header {
+    font-size: 50px;
+    font-weight: bold;
+    color: #776e65;
 }

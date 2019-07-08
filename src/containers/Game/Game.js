@@ -109,6 +109,7 @@ class Game extends Component {
   render() {
     return (
       <div className={classes.Game} >
+        <div className={classes.Header}>2048</div>
         <GameBoard />
       </div>
     );
