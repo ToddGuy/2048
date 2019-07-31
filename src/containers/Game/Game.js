@@ -9,6 +9,10 @@ import { directions } from "../../utils/data";
 
 class Game extends Component {
 
+  state = {
+    restartDialog: false
+  };
+
   directionKeyCodes =  range(37, 41).reduce((acc, cur) => {
     acc[cur] = true;
     return acc;
@@ -19,15 +23,16 @@ class Game extends Component {
   constructor(props) {
     super(props);
     this.directionHandler = this.directionHandler.bind(this);
+    this.restartDialog = this.restartDialog.bind(this);
   }
 
   directionHandler(event) {
     if (this.directionKeyCodes[event.keyCode]) {
-      this.props.swipeTiles(event.keyCode, [...Array(2)].map(() => Math.random()));
+      this.props.swipeTiles(event.keyCode, this.generateRands());
     }
   }
 
-  moveHandler = function(prevCoordinates, removeEventListenerCb, event) {
+  moveHandler(prevCoordinates, removeEventListenerCb, event) {
 
     const [prevX, prevY] = prevCoordinates;
     const [curX, curY] = (event.touches === undefined) ? [event.clientX, event.clientY] : [event.touches[0].clientX, event.touches[0].clientY];
@@ -39,18 +44,18 @@ class Game extends Component {
      */
     if (Math.abs(curX - prevX) > Math.abs(curY - prevY)) {
       if (curX < prevX - offSet) {
-        this.props.swipeTiles(directions.left);
+        this.props.swipeTiles(directions.left, this.generateRands());
         removeEventListenerCb();
       } else if (curX > prevX + offSet) {
-        this.props.swipeTiles(directions.right);
+        this.props.swipeTiles(directions.right, this.generateRands());
         removeEventListenerCb();
       }
     } else {
       if (curY < prevY - offSet) {
-        this.props.swipeTiles(directions.up);
+        this.props.swipeTiles(directions.up, this.generateRands());
         removeEventListenerCb();
       } else if (curY > prevY + offSet) {
-        this.props.swipeTiles(directions.down);
+        this.props.swipeTiles(directions.down, this.generateRands());
         removeEventListenerCb();
       }
     }
@@ -102,6 +107,16 @@ class Game extends Component {
     this.removeListenerCallbackList.push(() => document.removeEventListener("mousedown", mouseDownHandler));
   }
 
+  restartDialog() {
+    this.setState({
+      restartDialog: true
+    });
+  }
+
+  generateRands() {
+    return  [...Array(2)].map(() => Math.random());
+  }
+
   componentWillUnmount() {
     this.removeListenerCallbackList.forEach(cb => cb());
   }
@@ -110,7 +125,12 @@ class Game extends Component {
     return (
       <div className={classes.Game} >
         <div className={classes.Header}>2048</div>
-        <GameBoard />
+        <div>
+          <span style={{background: "red"}}>Points: 123456789</span>
+          <button>history</button>
+          <button onClick={this.restartDialog}>restart</button>
+        </div>
+        <GameBoard restartDialog={this.state.restartDialog}/>
       </div>
     );
   }

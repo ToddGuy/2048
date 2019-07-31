@@ -6,3 +6,7 @@
     position: relative;
 }
 
+.GameBoardOverlay {
+    opacity: 0.5;
+}
+
