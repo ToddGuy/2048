@@ -10,7 +10,8 @@ import { directions } from "../../utils/data";
 class Game extends Component {
 
   state = {
-    restartDialog: false
+    restartDialog: false,
+    playable: true
   };
 
   directionKeyCodes =  range(37, 41).reduce((acc, cur) => {
@@ -27,36 +28,38 @@ class Game extends Component {
   }
 
   directionHandler(event) {
-    if (this.directionKeyCodes[event.keyCode]) {
+    if (this.state.playable && this.directionKeyCodes[event.keyCode]) {
       this.props.swipeTiles(event.keyCode, this.generateRands());
     }
   }
 
   moveHandler(prevCoordinates, removeEventListenerCb, event) {
 
-    const [prevX, prevY] = prevCoordinates;
-    const [curX, curY] = (event.touches === undefined) ? [event.clientX, event.clientY] : [event.touches[0].clientX, event.touches[0].clientY];
-    const offSet = 30;
+    if (this.state.playable) {
+      const [prevX, prevY] = prevCoordinates;
+      const [curX, curY] = (event.touches === undefined) ? [event.clientX, event.clientY] : [event.touches[0].clientX, event.touches[0].clientY];
+      const offSet = 30;
 
-    /*
-     * if delta x is greater than delta y, it means you covered more distance on x axis,
-     * which in turn means that your swipe movement was closer to the x-axis than to the y.
-     */
-    if (Math.abs(curX - prevX) > Math.abs(curY - prevY)) {
-      if (curX < prevX - offSet) {
-        this.props.swipeTiles(directions.left, this.generateRands());
-        removeEventListenerCb();
-      } else if (curX > prevX + offSet) {
-        this.props.swipeTiles(directions.right, this.generateRands());
-        removeEventListenerCb();
-      }
-    } else {
-      if (curY < prevY - offSet) {
-        this.props.swipeTiles(directions.up, this.generateRands());
-        removeEventListenerCb();
-      } else if (curY > prevY + offSet) {
-        this.props.swipeTiles(directions.down, this.generateRands());
-        removeEventListenerCb();
+      /*
+       * if delta x is greater than delta y, it means you covered more distance on x axis,
+       * which in turn means that your swipe movement was closer to the x-axis than to the y.
+       */
+      if (Math.abs(curX - prevX) > Math.abs(curY - prevY)) {
+        if (curX < prevX - offSet) {
+          this.props.swipeTiles(directions.left, this.generateRands());
+          removeEventListenerCb();
+        } else if (curX > prevX + offSet) {
+          this.props.swipeTiles(directions.right, this.generateRands());
+          removeEventListenerCb();
+        }
+      } else {
+        if (curY < prevY - offSet) {
+          this.props.swipeTiles(directions.up, this.generateRands());
+          removeEventListenerCb();
+        } else if (curY > prevY + offSet) {
+          this.props.swipeTiles(directions.down, this.generateRands());
+          removeEventListenerCb();
+        }
       }
     }
 
@@ -109,7 +112,8 @@ class Game extends Component {
 
   restartDialog() {
     this.setState({
-      restartDialog: true
+      restartDialog: true,
+      playable: false
     });
   }
 

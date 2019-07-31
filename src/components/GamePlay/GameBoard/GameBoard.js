@@ -6,25 +6,30 @@ import classes from './GameBoard.module.css';
 import BackTiles from "../BackTiles/BackTiles";
 import FrontTiles from "../FrontTiles/FrontTiles";
 import Auxiliary from "../../hoc/Auxiliary/Auxiliary";
+import Backdrop from "./Backdrop/Backdrop";
+import RestartDialog from "./RestartDialog/RestartDialog";
 
-const gameBoard = ({gameOver, restartDialog}) => {
+const gameBoard = ({gameOver, restartDialog, doRestart, cancelRestart}) => {
   const classList = [classes.GameBoard];
 
-  let content;
+  let backdrop = null;
+  let overlay = null;
 
-  console.log("test");
   if (gameOver) {
-    classList.push(classes.GameBoardOverlay);
+    backdrop = <Backdrop />;
   } else if (restartDialog) {
-    classList.push(classes.GameBoardOverlay);
-  } else {
-    content = (
-      <Auxiliary>
-        <BackTiles />
-        <FrontTiles />
-      </Auxiliary>
-    );
+    backdrop = <Backdrop />;
+    overlay = <RestartDialog />;
   }
+
+  let content = (
+    <Auxiliary>
+      {overlay}
+      {backdrop}
+      <BackTiles />
+      <FrontTiles />
+    </Auxiliary>
+  );
 
   return (
     <div className={classList.join(" ")}>
@@ -33,8 +38,8 @@ const gameBoard = ({gameOver, restartDialog}) => {
   )
 };
 
-const mapStateToProps = ({ gameOver, restart }) => {
-  return { gameOver, restart };
+const mapStateToProps = ({ gameOver }) => {
+  return { gameOver };
 };
 
 export default connect(mapStateToProps)(gameBoard);

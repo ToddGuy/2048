@@ -1,0 +1,48 @@
+.RestartDialog {
+    z-index: 4;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-flow: column;
+    justify-content: center;
+    align-items: center;
+
+    /*user-drag: none;*/
+    /*user-select: none;*/
+    /*-moz-user-select: none;*/
+    /*-webkit-user-drag: none;*/
+    /*-webkit-user-select: none;*/
+    /*-ms-user-select: none;*/
+}
+
+.Dialog {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+    color: black;
+    font-weight: bolder;
+    font-size: 25px;
+    user-select: none;
+    user-focus: none;
+}
+
+.Button {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+    border: none;
+    background: none;
+    font-size: 50px;
+    font-weight: bold;
+    color: rgb(78, 151, 255);
+    user-select: none;
+    user-focus: none;
+    padding: 0px;
+    margin: 15px;
+}
+
+
+.Button:focus {
+    outline: none;
+}
+
+.Button:hover {
+    cursor: pointer;
+}
