@@ -1,9 +1,11 @@
 import React from 'react';
 
+import classes from "./GameOver.module.css";
+
 const gameOver = () => {
   return (
-    <div>
-      GameOver
+    <div className={classes.GameOver}>
+      Game Over
     </div>
   );
 };

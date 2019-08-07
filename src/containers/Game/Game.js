@@ -6,13 +6,17 @@ import { connect } from "react-redux";
 import {initTiles, swipeTilesSequence} from "../../redux/actions";
 import { range } from "../../utils/utility";
 import { directions } from "../../utils/data";
+import GameOver from "../../components/GamePlay/GameBoard/GameOver/GameOver";
+import Backdrop from "../../components/hoc/Backdrop/Backdrop";
+import RestartDialog from "../../components/GamePlay/GameBoard/RestartDialog/RestartDialog";
 
 class Game extends Component {
 
   state = {
-    restartDialog: false,
-    playable: true
+    restartDialog: false
   };
+
+  playable = true;
 
   directionKeyCodes =  range(37, 41).reduce((acc, cur) => {
     acc[cur] = true;
@@ -25,17 +29,18 @@ class Game extends Component {
     super(props);
     this.directionHandler = this.directionHandler.bind(this);
     this.restartDialog = this.restartDialog.bind(this);
+    this.restartClicked = this.restartClicked.bind(this);
   }
 
   directionHandler(event) {
-    if (this.state.playable && this.directionKeyCodes[event.keyCode]) {
+    if (this.playable && this.directionKeyCodes[event.keyCode]) {
       this.props.swipeTiles(event.keyCode, this.generateRands());
     }
   }
 
   moveHandler(prevCoordinates, removeEventListenerCb, event) {
 
-    if (this.state.playable) {
+    if (this.playable) {
       const [prevX, prevY] = prevCoordinates;
       const [curX, curY] = (event.touches === undefined) ? [event.clientX, event.clientY] : [event.touches[0].clientX, event.touches[0].clientY];
       const offSet = 30;
@@ -110,6 +115,24 @@ class Game extends Component {
     this.removeListenerCallbackList.push(() => document.removeEventListener("mousedown", mouseDownHandler));
   }
 
+  componentWillUnmount() {
+    this.removeListenerCallbackList.forEach(cb => cb());
+  }
+
+  componentDidUpdate(prevProps) {
+    if (prevProps.gameOver) {
+      this.playable = false;
+    }
+  }
+
+  gameOver(gameOver) {
+    if (gameOver) {
+      this.setState({
+        playable: false
+      });
+    }
+  }
+
   restartDialog() {
     this.setState({
       restartDialog: true,
@@ -121,11 +144,24 @@ class Game extends Component {
     return  [...Array(2)].map(() => Math.random());
   }
 
-  componentWillUnmount() {
-    this.removeListenerCallbackList.forEach(cb => cb());
+  restartClicked(doRestart) {
+    if (doRestart) {
+      this.props.initTiles([...Array(6)].map(() => Math.random()), true);
+    }
+
+    this.playable = true;
+    this.setState({restartDialog: false});
   }
 
   render() {
+
+    const overlay = this.props.gameOver ? <
+      GameOver/> :
+      (this.state.restartDialog) ?
+        <RestartDialog clicked={this.restartClicked} /> :
+        null;
+    const backdrop = (overlay == null) ? null : <Backdrop> {overlay} </Backdrop>;
+
     return (
       <div className={classes.Game} >
         <div className={classes.Header}>2048</div>
@@ -134,7 +170,11 @@ class Game extends Component {
           <button>history</button>
           <button onClick={this.restartDialog}>restart</button>
         </div>
-        <GameBoard restartDialog={this.state.restartDialog}/>
+        <div>
+          <GameBoard>
+            { backdrop }
+          </GameBoard>
+        </div>
       </div>
     );
   }
@@ -143,8 +183,14 @@ class Game extends Component {
 const mapDispatchToProps = dispatch => {
   return {
     swipeTiles: (direction, rands) => dispatch(swipeTilesSequence(direction, rands)),
-    initTiles: (rands) => dispatch(initTiles(rands))
+    initTiles: (rands, shouldRestart) => dispatch(initTiles(rands, shouldRestart))
   };
 };
 
-export default connect(null, mapDispatchToProps)(Game);
+const mapStateToProps = ({gameOver}) => {
+  return {
+    gameOver
+  };
+};
+
+export default connect(mapStateToProps, mapDispatchToProps)(Game);

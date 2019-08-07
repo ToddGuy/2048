@@ -1,49 +1,75 @@
-import {SWIPE_TILES, START_MOVING, STOP_MOVING, INIT_TILES} from '../actionTypes';
+import {INIT_TILES, START_MOVING, STOP_MOVING, SWIPE_TILES, RESTART} from '../actionTypes';
 
-import { Queue } from "../../utils/ds";
-import {rng, createKey, range} from "../../utils/utility";
-import {directions, canMove, markForRemoval, markForShift, createEmptyTile, createNewTile} from "../../utils/data";
+import {Queue} from "../../utils/ds";
+import {createKey, range, rng} from "../../utils/utility";
+import {canMove, createEmptyTile, fillRandomTile, directions, markForRemoval, markForShift} from "../../utils/data";
 
-const initialState = new (function(){
-  const tiles = (function(){
-    const ROWS = 4;
-    const COLS = 4;
+const createInitialState = function() {
+  return new function() {
+    this.tiles = (function () {
+      const ROWS = 4;
+      const COLS = 4;
 
-    const tiles = [];
-    // +85px
-    let yAxisPos = 5;
-    for (let i = 0; i < ROWS; i++) {
-      let xAxisPos = 5;
-      let tileRow = [];
-      tiles.push(tileRow);
-      for (let j = 0; j < COLS; j++) {
-        const tile = {
-          row: i,
-          col: j,
-          yAxisPos: yAxisPos,
-          xAxisPos: xAxisPos,
-          filled: false,
-          value: -1
-        };
-        xAxisPos += 85;
-        tileRow.push(tile);
+      const tiles = [];
+      // +85px
+      let yAxisPos = 5;
+      for (let i = 0; i < ROWS; i++) {
+        let xAxisPos = 5;
+        let tileRow = [];
+        tiles.push(tileRow);
+        for (let j = 0; j < COLS; j++) {
+          const tile = {
+            row: i,
+            col: j,
+            yAxisPos: yAxisPos,
+            xAxisPos: xAxisPos,
+            filled: false,
+            value: -1
+          };
+          xAxisPos += 85;
+          tileRow.push(tile);
+        }
+        yAxisPos += 85;
       }
-      yAxisPos += 85;
-    }
 
-    return tiles;
-  })();
+      return tiles;
+    })();
 
-  this.tiles = tiles;
-  this.filledTiles = [];
-  this.moving = false;
-  this.gameOver = false;
-})();
+    this.filledTiles = [];
+    this.moving = false;
+    this.gameOver = false;
+  };
+};
 
+// initializes two filled random tiles in beginning
+function fillRandomInitialTiles(state, {payload: {rowRand0, colRand0, rowRand1, colRand1, twoOrFour0, twoOrFour1}}) {
+  const tiles = state.tiles;
+  const filledTiles = [];
+
+  const arr = [...Array(4)].map(() => range(0, 4));
+
+  let row = rng(0, arr.length, rowRand0);
+  let col = arr[row][rng(0, arr[row].length, colRand0)];
+
+
+  tiles[row][col] = fillRandomTile(tiles[row][col], 0, twoOrFour0);
+  filledTiles.push(tiles[row][col]);
+
+  arr[row].splice(col, 1);
+
+  row = rng(0, arr.length, rowRand1);
+  col = arr[row][rng(0, arr[row].length, colRand1)];
+
+
+  tiles[row][col] = fillRandomTile(tiles[row][col], 1, twoOrFour1);
+  filledTiles.push(tiles[row][col]);
+
+  return { tiles, filledTiles }
+}
 
 function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }) {
 
-  const tiles = state.tiles;
+  const tiles = state.tiles; //tiles before shiftedTiles representation
   let filledTiles = [...state.filledTiles];
 
   let rowTraverseCondition;
@@ -167,7 +193,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
   if (numFilledTiles < 16) {
     //place random tile.
     const item = emptyTiles[rng(0, emptyTiles.length, randomLocation)];
-    const randomTile = createNewTile(item.emptyTile, filledTiles.length, twoOrFour);
+    const randomTile = fillRandomTile(item.emptyTile, filledTiles.length, twoOrFour);
     shiftedTiles[item.row][item.col] = randomTile;
     filledTiles.push(randomTile);
 
@@ -187,7 +213,6 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
     }
   }
 
-  console.log("gameover = " + gameOver);
   return {tiles: shiftedTiles, filledTiles: filledTiles, gameOver};
 }
 
@@ -206,32 +231,7 @@ function removeTiles(state) {
   return {tiles, filledTiles};
 }
 
-function initTiles(state, {payload: {rowRand0, colRand0, rowRand1, colRand1, twoOrFour0, twoOrFour1}}) {
-  const tiles = state.tiles;
-  const filledTiles = [];
-
-  const arr = [...Array(4)].map(() => range(0, 4));
-
-  let row = rng(0, arr.length, rowRand0);
-  let col = arr[row][rng(0, arr[row].length, colRand0)];
-
-
-  tiles[row][col] = createNewTile(tiles[row][col], 0, twoOrFour0);
-  filledTiles.push(tiles[row][col]);
-
-  arr[row].splice(col, 1);
-
-  row = rng(0, arr.length, rowRand1);
-  col = arr[row][rng(0, arr[row].length, colRand1)];
-
-
-  tiles[row][col] = createNewTile(tiles[row][col], 1, twoOrFour1);
-  filledTiles.push(tiles[row][col]);
-
-  return { tiles, filledTiles }
-}
-
-export default function(state = initialState, action) {
+export default function(state = createInitialState(), action) {
   switch (action.type) {
     case SWIPE_TILES:
       return {...state, ...swipeTiles(state, action), move: true};
@@ -243,7 +243,10 @@ export default function(state = initialState, action) {
       return {...state, ...removeTiles(state), moving: false};
 
     case INIT_TILES:
-      return {...state, ...initTiles(state, action)};
+      if (action.payload.shouldRestart) {
+        state = createInitialState();
+      }
+      return {...state, ...fillRandomInitialTiles(state, action)};
 
     default:
       return state;

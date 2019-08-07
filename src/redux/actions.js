@@ -29,7 +29,8 @@ export const swipeTilesSequence = (direction, [randomLocation, twoOrFourRand]) =
       return;
     }
 
-    /* need this canMove for cases where tiles are up against edge and you press towards the edge
+    /* Check if we can move in the user inputted direction
+     * Also, need this canMove for cases where tiles are up against edge and you press towards the edge
      * really fast and then another direction; without this it won't move
      */
     if (canMove(tiles, direction)) {
@@ -40,13 +41,15 @@ export const swipeTilesSequence = (direction, [randomLocation, twoOrFourRand]) =
   };
 };
 
-export const initTiles = (rands) => {
+//shouldRestart indicates we need to reset the game
+export const initTiles = (rands, shouldRestart) => {
   const [rowRand0, colRand0, rowRand1, colRand1, twoOrFourRand0, twoOrFourRand1] = rands;
   return {
     type: INIT_TILES,
     payload:  {
       rowRand0, colRand0, rowRand1, colRand1,
-      twoOrFour0: chooseTwoOrFour(twoOrFourRand0), twoOrFour1: chooseTwoOrFour(twoOrFourRand1)
+      twoOrFour0: chooseTwoOrFour(twoOrFourRand0), twoOrFour1: chooseTwoOrFour(twoOrFourRand1),
+      shouldRestart
     }
   }
 };

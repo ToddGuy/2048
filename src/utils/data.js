@@ -7,6 +7,7 @@ export const directions = {
   down: 40,
 };
 
+//10% chance that tile is a 4
 export function chooseTwoOrFour(randomMultiplier) {
   const arr = Array(10).fill(2);
   arr[4] = 4;
@@ -46,7 +47,7 @@ export function createEmptyTile() {
   return {...empty};
 }
 
-export function createNewTile(baseTile, filledPtr, value) {
+export function fillRandomTile(baseTile, filledPtr, value) {
     return {
       ...baseTile,
       key: createKey(),
