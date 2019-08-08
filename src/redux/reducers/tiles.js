@@ -1,4 +1,4 @@
-import {INIT_TILES, START_MOVING, STOP_MOVING, SWIPE_TILES, RESTART} from '../actionTypes';
+import {INIT_TILES, START_MOVING, STOP_MOVING, SWIPE_TILES} from '../actionTypes';
 
 import {Queue} from "../../utils/ds";
 import {createKey, range, rng} from "../../utils/utility";
@@ -38,6 +38,7 @@ const createInitialState = function() {
     this.filledTiles = [];
     this.moving = false;
     this.gameOver = false;
+    this.points = 0;
   };
 };
 
@@ -70,6 +71,7 @@ function fillRandomInitialTiles(state, {payload: {rowRand0, colRand0, rowRand1, 
 function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }) {
 
   const tiles = state.tiles; //tiles before shiftedTiles representation
+  let points = state.points;
   let filledTiles = [...state.filledTiles];
 
   let rowTraverseCondition;
@@ -97,7 +99,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
       break;
 
     default:
-      throw "Incorrect direction.";
+      break;
   }
 
   const getTile = (row, col) => swapRowCol ? tiles[col][row] : tiles[row][col];
@@ -145,6 +147,8 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
             filledTiles[front.filledPtr] = markForRemoval(filledTiles[front.filledPtr], shiftedTile);
 
             numFilledTiles--; //subtract one for every 2 replaced with 1.
+
+            points += shiftedTile.value//add value of this merge to points
           } else {
             const index = shiftedTile.filledPtr;
             filledTiles[index] = markForShift(filledTiles[index], index, posTile);
@@ -213,7 +217,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
     }
   }
 
-  return {tiles: shiftedTiles, filledTiles: filledTiles, gameOver};
+  return {tiles: shiftedTiles, filledTiles, gameOver, points};
 }
 
 function removeTiles(state) {

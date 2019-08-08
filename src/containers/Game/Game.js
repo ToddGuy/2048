@@ -9,6 +9,8 @@ import { directions } from "../../utils/data";
 import GameOver from "../../components/GamePlay/GameBoard/GameOver/GameOver";
 import Backdrop from "../../components/hoc/Backdrop/Backdrop";
 import RestartDialog from "../../components/GamePlay/GameBoard/RestartDialog/RestartDialog";
+import Auxiliary from "../../components/hoc/Auxiliary/Auxiliary";
+import Points from "../../components/Points/Points";
 
 class Game extends Component {
 
@@ -27,6 +29,7 @@ class Game extends Component {
 
   constructor(props) {
     super(props);
+
     this.directionHandler = this.directionHandler.bind(this);
     this.restartDialog = this.restartDialog.bind(this);
     this.restartClicked = this.restartClicked.bind(this);
@@ -71,6 +74,9 @@ class Game extends Component {
   };
 
   componentDidMount() {
+
+    this.init = false;
+
     this.props.initTiles([...Array(6)].map(() => Math.random()));
 
     document.addEventListener("keydown", this.directionHandler);
@@ -125,18 +131,10 @@ class Game extends Component {
     }
   }
 
-  gameOver(gameOver) {
-    if (gameOver) {
-      this.setState({
-        playable: false
-      });
-    }
-  }
-
   restartDialog() {
+    this.playable = false;
     this.setState({
       restartDialog: true,
-      playable: false
     });
   }
 
@@ -144,6 +142,7 @@ class Game extends Component {
     return  [...Array(2)].map(() => Math.random());
   }
 
+  //yes was clicked
   restartClicked(doRestart) {
     if (doRestart) {
       this.props.initTiles([...Array(6)].map(() => Math.random()), true);
@@ -154,25 +153,28 @@ class Game extends Component {
   }
 
   render() {
-
-    const overlay = this.props.gameOver ? <
-      GameOver/> :
-      (this.state.restartDialog) ?
-        <RestartDialog clicked={this.restartClicked} /> :
-        null;
-    const backdrop = (overlay == null) ? null : <Backdrop> {overlay} </Backdrop>;
-
     return (
-      <div className={classes.Game} >
+      <div className={classes.Game}>
         <div className={classes.Header}>2048</div>
         <div>
-          <span style={{background: "red"}}>Points: 123456789</span>
+          <Points />
           <button>history</button>
           <button onClick={this.restartDialog}>restart</button>
         </div>
         <div>
           <GameBoard>
-            { backdrop }
+            {
+              (
+                <Auxiliary>
+                  <Backdrop display={this.state.restartDialog}>
+                    <RestartDialog clicked={this.restartClicked}/>
+                  </Backdrop>
+                  <Backdrop display={this.props.gameOver}>
+                    <GameOver/>
+                  </Backdrop>
+                </Auxiliary>
+              )
+            }
           </GameBoard>
         </div>
       </div>
