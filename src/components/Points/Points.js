@@ -4,7 +4,7 @@ import {connect} from "react-redux";
 import classes from './Points.module.css';
 
 const points = (props) => (
-  <span className={classes.Points}>{props.points}</span>
+  <div className={classes.Points}><span>Score:</span> {props.points}</div>
 );
 
 

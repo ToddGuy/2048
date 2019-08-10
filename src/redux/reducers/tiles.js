@@ -1,8 +1,8 @@
-import {INIT_TILES, START_MOVING, STOP_MOVING, SWIPE_TILES} from '../actionTypes';
+import {INIT_TILES, START_MOVING, STOP_MOVING, SWIPE_TILES, UNDO_MOVE} from '../actionTypes';
 
 import {Queue} from "../../utils/ds";
-import {createKey, range, rng} from "../../utils/utility";
-import {canMove, createEmptyTile, fillRandomTile, directions, markForRemoval, markForShift} from "../../utils/data";
+import {range, rng} from "../../utils/utility";
+import {canMove, createEmptyTile, fillRandomTile, directions, markForRemoval, markForShift, createFilledTileKey} from "../../utils/data";
 
 const createInitialState = function() {
   return new function() {
@@ -39,11 +39,13 @@ const createInitialState = function() {
     this.moving = false;
     this.gameOver = false;
     this.points = 0;
+    this.lastMove = { used: true };
   };
 };
 
 // initializes two filled random tiles in beginning
 function fillRandomInitialTiles(state, {payload: {rowRand0, colRand0, rowRand1, colRand1, twoOrFour0, twoOrFour1}}) {
+
   const tiles = state.tiles;
   const filledTiles = [];
 
@@ -69,6 +71,8 @@ function fillRandomInitialTiles(state, {payload: {rowRand0, colRand0, rowRand1, 
 }
 
 function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }) {
+
+  const lastMove = state;
 
   const tiles = state.tiles; //tiles before shiftedTiles representation
   let points = state.points;
@@ -135,7 +139,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
               filled: true,
               isMerged: true,
               isNew: false,
-              key: createKey(),
+              key: createFilledTileKey(),
               xAxisPos: posTile.xAxisPos,
               yAxisPos: posTile.yAxisPos,
               filledPtr: filledTiles.length
@@ -171,14 +175,19 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
     }
 
     while (rowTraverseCondition(pos)) {
-      const emptyTile = createEmptyTile();
       const posTile = getTile(row, pos);
       const [swapRow, swapCol] = getRowCol(row, pos); //for finding and setting random tile to
-      emptyTile.yAxisPos = posTile.yAxisPos;
-      emptyTile.xAxisPos = posTile.xAxisPos;
+
+      const emptyTile = {...createEmptyTile(),
+        yAxisPos: posTile.yAxisPos,
+        xAxisPos: posTile.xAxisPos,
+        row: swapRow, col: swapCol
+      };
+      // emptyTile.yAxisPos = posTile.yAxisPos;
+      // emptyTile.xAxisPos = posTile.xAxisPos;
       shiftedRow[pos] = emptyTile;
 
-      emptyTiles.push({emptyTile, row: swapRow, col: swapCol});
+      emptyTiles.push(emptyTile);
 
       pos = shift(pos);
     }
@@ -196,9 +205,9 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
 
   if (numFilledTiles < 16) {
     //place random tile.
-    const item = emptyTiles[rng(0, emptyTiles.length, randomLocation)];
-    const randomTile = fillRandomTile(item.emptyTile, filledTiles.length, twoOrFour);
-    shiftedTiles[item.row][item.col] = randomTile;
+    const emptyTile = emptyTiles[rng(0, emptyTiles.length, randomLocation)];
+    const randomTile = fillRandomTile(emptyTile, filledTiles.length, twoOrFour);
+    shiftedTiles[emptyTile.row][emptyTile.col] = randomTile;
     filledTiles.push(randomTile);
 
     numFilledTiles++;
@@ -217,11 +226,25 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
     }
   }
 
-  return {tiles: shiftedTiles, filledTiles, gameOver, points};
+  return {tiles: shiftedTiles, filledTiles, gameOver, points, lastMove};
 }
 
-function removeTiles(state) {
-  let filledTiles = state.filledTiles.filter((el) => !el.remove);
+/*
+ * removes tiles marked to be removed, also removes isNew flag so that if history is clicked, can transition smoothly
+ */
+function cleanUpTiles(state) {
+  const filledTiles = state.filledTiles.filter((el) => !el.remove);
+
+
+  if (state.lastMove.filledTiles) {
+    const lastMoveFilledTiles = state.lastMove.filledTiles;
+
+    lastMoveFilledTiles.forEach(el => {
+      if (el.isNew) {
+        el.isNew = false;
+      }
+    });
+  }
 
   if (filledTiles.length === state.filledTiles.length) { //nothing removed, no need to re-render
     return state;
@@ -229,10 +252,20 @@ function removeTiles(state) {
 
   let tiles = state.tiles;
 
+  //update index in array for surviving elements
   filledTiles.forEach((el, index) => {
     el.filledPtr = index;
   });
-  return {tiles, filledTiles};
+
+  return {tiles, filledTiles, lastMove: {...state.lastMove, used: false}};
+}
+
+function undoMove(state) {
+  if (state.lastMove.used) {
+    return state;
+  }
+
+  return  {...state.lastMove, lastMove: {used: true}};
 }
 
 export default function(state = createInitialState(), action) {
@@ -244,13 +277,18 @@ export default function(state = createInitialState(), action) {
       return {...state, moving: true};
 
     case STOP_MOVING:
-      return {...state, ...removeTiles(state), moving: false};
+      return {...state, ...cleanUpTiles(state), moving: false};
 
     case INIT_TILES:
       if (action.payload.shouldRestart) {
         state = createInitialState();
       }
       return {...state, ...fillRandomInitialTiles(state, action)};
+
+    case UNDO_MOVE:
+      console.log(state.lastMove.filledTiles, state.filledTiles);
+      console.log(state.lastMove.tiles, state.tiles);
+      return undoMove(state);
 
     default:
       return state;

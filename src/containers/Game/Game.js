@@ -3,7 +3,7 @@ import React, { Component } from 'react';
 import classes from './Game.module.css';
 import GameBoard from '../../components/GamePlay/GameBoard/GameBoard';
 import { connect } from "react-redux";
-import {initTiles, swipeTilesSequence} from "../../redux/actions";
+import {initTiles, swipeTiles, undoMove} from "../../redux/actions";
 import { range } from "../../utils/utility";
 import { directions } from "../../utils/data";
 import GameOver from "../../components/GamePlay/GameBoard/GameOver/GameOver";
@@ -31,7 +31,7 @@ class Game extends Component {
     super(props);
 
     this.directionHandler = this.directionHandler.bind(this);
-    this.restartDialog = this.restartDialog.bind(this);
+    this.showRestartDialog = this.showRestartDialog.bind(this);
     this.restartClicked = this.restartClicked.bind(this);
   }
 
@@ -131,7 +131,7 @@ class Game extends Component {
     }
   }
 
-  restartDialog() {
+  showRestartDialog() {
     this.playable = false;
     this.setState({
       restartDialog: true,
@@ -156,10 +156,10 @@ class Game extends Component {
     return (
       <div className={classes.Game}>
         <div className={classes.Header}>2048</div>
-        <div>
+        <div className={classes.Horizontal}>
           <Points />
-          <button>history</button>
-          <button onClick={this.restartDialog}>restart</button>
+          <button onClick={(this.playable) ? this.props.undoMove : null}>history</button>
+          <button onClick={this.showRestartDialog}>restart</button>
         </div>
         <div>
           <GameBoard>
@@ -184,8 +184,9 @@ class Game extends Component {
 
 const mapDispatchToProps = dispatch => {
   return {
-    swipeTiles: (direction, rands) => dispatch(swipeTilesSequence(direction, rands)),
-    initTiles: (rands, shouldRestart) => dispatch(initTiles(rands, shouldRestart))
+    swipeTiles: (direction, rands) => dispatch(swipeTiles(direction, rands)),
+    initTiles: (rands, shouldRestart) => dispatch(initTiles(rands, shouldRestart)),
+    undoMove: () => dispatch(undoMove())
   };
 };
 

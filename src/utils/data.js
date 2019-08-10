@@ -1,4 +1,4 @@
-import {createKey, rng} from "./utility";
+import {rng} from "./utility";
 
 export const directions = {
   left: 37,
@@ -50,7 +50,7 @@ export function createEmptyTile() {
 export function fillRandomTile(baseTile, filledPtr, value) {
     return {
       ...baseTile,
-      key: createKey(),
+      key: createFilledTileKey(),
       filled: true, isNew: true, isMerged: false,
       filledPtr, value
     };
@@ -110,6 +110,13 @@ export const canMove = (tiles, direction) => {
 
   return false;
 };
+
+export const createFilledTileKey = (function() {
+  let i = 0;
+  return function() {
+    return i++;
+  };
+})();
 
 export const colorMap = {
   colorArr: (function() {

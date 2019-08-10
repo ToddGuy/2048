@@ -1,3 +1,9 @@
 .Points {
+    border-style: none;
+    border-radius: 5px;
+    background: #baada0;
+}
+
+.Points span {
 
 }

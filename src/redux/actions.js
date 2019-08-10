@@ -1,7 +1,7 @@
-import {SWIPE_TILES, START_MOVING, STOP_MOVING, INIT_TILES} from "./actionTypes";
+import {SWIPE_TILES, START_MOVING, STOP_MOVING, INIT_TILES, UNDO_MOVE} from "./actionTypes";
 import {canMove, chooseTwoOrFour} from "../utils/data";
 
-export const swipeTiles = (direction, randomLocation, twoOrFour) => {
+const swipeTilesCreator = (direction, randomLocation, twoOrFour) => {
   return {
     type: SWIPE_TILES,
     payload: {
@@ -10,19 +10,25 @@ export const swipeTiles = (direction, randomLocation, twoOrFour) => {
   }
 };
 
-export const startMoving = () => {
+const startMoving = () => {
   return {
     type: START_MOVING,
   }
 };
 
-export const stopMoving = () => {
+const stopMoving = () => {
   return {
     type: STOP_MOVING,
   }
 };
 
-export const swipeTilesSequence = (direction, [randomLocation, twoOrFourRand]) => {
+const undoMoveCreator = () => {
+  return {
+    type: UNDO_MOVE
+  }
+};
+
+export const swipeTiles = (direction, [randomLocation, twoOrFourRand]) => {
   return (dispatch, getState) => {
     const { moving, tiles } = getState();
     if (moving) {
@@ -35,7 +41,7 @@ export const swipeTilesSequence = (direction, [randomLocation, twoOrFourRand]) =
      */
     if (canMove(tiles, direction)) {
       dispatch(startMoving());
-      dispatch(swipeTiles(direction, randomLocation, chooseTwoOrFour(twoOrFourRand)));
+      dispatch(swipeTilesCreator(direction, randomLocation, chooseTwoOrFour(twoOrFourRand)));
       setTimeout(() => dispatch(stopMoving()), 100);
     }
   };
@@ -53,3 +59,17 @@ export const initTiles = (rands, shouldRestart) => {
     }
   }
 };
+
+export const undoMove = () => {
+  return (dispatch, getState) => {
+    const { used } = getState().lastMove;
+    if (used) {
+      return;
+    }
+    dispatch(startMoving());
+    dispatch(undoMoveCreator());
+    setTimeout(() => dispatch(stopMoving()), 100);
+  }
+};
+
+
