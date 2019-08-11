@@ -239,9 +239,7 @@ function cleanUpTiles(state) {
     const lastMoveFilledTiles = state.lastMove.filledTiles;
 
     lastMoveFilledTiles.forEach(el => {
-      if (el.isNew) {
-        el.isNew = false;
-      }
+      el.isNew = false;
     });
   }
 
@@ -254,6 +252,7 @@ function cleanUpTiles(state) {
   //update index in array for surviving elements
   filledTiles.forEach((el, index) => {
     el.filledPtr = index;
+    el.isMerged = false; //take off merged for animation to not occur
   });
 
   return {tiles, filledTiles, lastMove: {...state.lastMove, used: false}};

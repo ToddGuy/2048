@@ -132,10 +132,14 @@ class Game extends Component {
   }
 
   showRestartDialog() {
-    this.playable = false;
-    this.setState({
-      restartDialog: true,
-    });
+    if (this.props.gameOver) {
+      this.restartClicked(true);
+    } else {
+      this.playable = false;
+      this.setState({
+        restartDialog: true,
+      });
+    }
   }
 
   generateRands() {
@@ -166,7 +170,7 @@ class Game extends Component {
             {
               (
                 <Auxiliary>
-                  <Backdrop display={this.state.restartDialog}>
+                  <Backdrop display={!this.props.gameOver && this.state.restartDialog}>
                     <RestartDialog clicked={this.restartClicked}/>
                   </Backdrop>
                   <Backdrop display={this.props.gameOver}>
