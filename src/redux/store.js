@@ -14,7 +14,6 @@ const store = createStore(
   applyMiddleware(thunk)
 );
 
-
 store.subscribe(() => {
   const reduxState = store.getState();
   window.localStorage.setItem("reduxState", JSON.stringify(reduxState));
