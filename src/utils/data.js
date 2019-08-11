@@ -47,10 +47,10 @@ export function createEmptyTile() {
   return {...empty};
 }
 
-export function fillRandomTile(baseTile, filledPtr, value) {
+export function fillRandomTile(baseTile, filledPtr, value, key) {
     return {
       ...baseTile,
-      key: createFilledTileKey(),
+      key: key,
       filled: true, isNew: true, isMerged: false,
       filledPtr, value
     };
@@ -71,6 +71,7 @@ export const canMove = (tiles, direction) => {
   switch (direction) {
     case up:
       swapRowCol = true;
+    // eslint-disable-next-line
     case left:
       rowTraverseCondition = (row) => row > -1;
       colTraverseCondition = (col) => col > 0;
@@ -84,6 +85,7 @@ export const canMove = (tiles, direction) => {
 
     case down:
       swapRowCol = true;
+    // eslint-disable-next-line
     case right: //right
       rowTraverseCondition = (row) => row < 4;
       colTraverseCondition = (col) => col < 3;
@@ -111,12 +113,9 @@ export const canMove = (tiles, direction) => {
   return false;
 };
 
-export const createFilledTileKey = (function() {
-  let i = 0;
-  return function() {
-    return i++;
-  };
-})();
+export function getAndIncrement(key) {
+  return key.num++;
+}
 
 export const colorMap = {
   colorArr: (function() {

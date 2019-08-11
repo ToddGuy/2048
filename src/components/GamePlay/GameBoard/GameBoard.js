@@ -6,7 +6,6 @@ import FrontTiles from "../FrontTiles/FrontTiles";
 import Auxiliary from "../../hoc/Auxiliary/Auxiliary";
 
 const gameBoard = (props) => {
-  console.log("rendering gameboard");
   return (
     <div className={classes.GameBoard}>
       { props.children }

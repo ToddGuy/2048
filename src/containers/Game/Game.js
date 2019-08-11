@@ -1,6 +1,7 @@
 import React, { Component } from 'react';
 
 import classes from './Game.module.css';
+
 import GameBoard from '../../components/GamePlay/GameBoard/GameBoard';
 import { connect } from "react-redux";
 import {initTiles, swipeTiles, undoMove} from "../../redux/actions";
@@ -11,6 +12,8 @@ import Backdrop from "../../components/hoc/Backdrop/Backdrop";
 import RestartDialog from "../../components/GamePlay/GameBoard/RestartDialog/RestartDialog";
 import Auxiliary from "../../components/hoc/Auxiliary/Auxiliary";
 import Points from "../../components/Points/Points";
+import { FaRedo, FaHistory } from 'react-icons/fa';
+import Button from "../../components/UI/Button/Button";
 
 class Game extends Component {
 
@@ -33,6 +36,7 @@ class Game extends Component {
     this.directionHandler = this.directionHandler.bind(this);
     this.showRestartDialog = this.showRestartDialog.bind(this);
     this.restartClicked = this.restartClicked.bind(this);
+    this.undoMove = this.undoMove.bind(this);
   }
 
   directionHandler(event) {
@@ -74,10 +78,9 @@ class Game extends Component {
   };
 
   componentDidMount() {
-
-    this.init = false;
-
-    this.props.initTiles([...Array(6)].map(() => Math.random()));
+    if (!JSON.parse(window.localStorage.getItem("saveGame"))) {
+      this.props.initTiles(this.getRands());
+    }
 
     document.addEventListener("keydown", this.directionHandler);
     this.removeListenerCallbackList.push(() => document.removeEventListener("keydown", this.directionHandler));
@@ -125,12 +128,6 @@ class Game extends Component {
     this.removeListenerCallbackList.forEach(cb => cb());
   }
 
-  componentDidUpdate(prevProps) {
-    if (prevProps.gameOver) {
-      this.playable = false;
-    }
-  }
-
   showRestartDialog() {
     if (this.props.gameOver) {
       this.restartClicked(true);
@@ -149,11 +146,22 @@ class Game extends Component {
   //yes was clicked
   restartClicked(doRestart) {
     if (doRestart) {
-      this.props.initTiles([...Array(6)].map(() => Math.random()), true);
+      this.props.initTiles(this.getRands(), true);
     }
 
     this.playable = true;
     this.setState({restartDialog: false});
+  }
+
+  undoMove() {
+    if (this.playable || this.props.gameOver) {
+      this.props.undoMove();
+    } //else if (!this.playable) {
+
+  }
+
+  getRands() { //for when we initialize, we'll need 6 different random nums
+    return [...Array(6)].map(() => Math.random())
   }
 
   render() {
@@ -162,8 +170,8 @@ class Game extends Component {
         <div className={classes.Header}>2048</div>
         <div className={classes.Horizontal}>
           <Points />
-          <button onClick={(this.playable) ? this.props.undoMove : null}>history</button>
-          <button onClick={this.showRestartDialog}>restart</button>
+          <Button onClick={this.undoMove}><FaHistory /></Button>
+          <Button onClick={this.showRestartDialog}><FaRedo/></Button>
         </div>
         <div>
           <GameBoard>

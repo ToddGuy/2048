@@ -17,6 +17,7 @@
 .Horizontal {
     display: flex;
     flex-flow: row nowrap;
-    justify-content: space-around;
-    width: 200px;
+    justify-content: space-between;
+    width: 345px;
+    user-select: none;
 }

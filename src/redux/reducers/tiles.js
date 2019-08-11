@@ -2,43 +2,53 @@ import {INIT_TILES, START_MOVING, STOP_MOVING, SWIPE_TILES, UNDO_MOVE} from '../
 
 import {Queue} from "../../utils/ds";
 import {range, rng} from "../../utils/utility";
-import {canMove, createEmptyTile, fillRandomTile, directions, markForRemoval, markForShift, createFilledTileKey} from "../../utils/data";
+import {
+  canMove,
+  createEmptyTile,
+  fillRandomTile,
+  directions,
+  markForRemoval,
+  markForShift,
+  getAndIncrement
+} from "../../utils/data";
 
-const createInitialState = function() {
-  return new function() {
-    this.tiles = (function () {
-      const ROWS = 4;
-      const COLS = 4;
+const InitialState = function(keyNum = 0) {
+  this.tiles = (function () {
+    const ROWS = 4;
+    const COLS = 4;
 
-      const tiles = [];
-      // +85px
-      let yAxisPos = 5;
-      for (let i = 0; i < ROWS; i++) {
-        let xAxisPos = 5;
-        let tileRow = [];
-        tiles.push(tileRow);
-        for (let j = 0; j < COLS; j++) {
-          const tile = {
-            yAxisPos: yAxisPos,
-            xAxisPos: xAxisPos,
-            filled: false,
-            value: -1
-          };
-          xAxisPos += 85;
-          tileRow.push(tile);
-        }
-        yAxisPos += 85;
+    const tiles = [];
+    // +85px
+    let yAxisPos = 5;
+    for (let i = 0; i < ROWS; i++) {
+      let xAxisPos = 5;
+      let tileRow = [];
+      tiles.push(tileRow);
+      for (let j = 0; j < COLS; j++) {
+        const tile = {
+          yAxisPos: yAxisPos,
+          xAxisPos: xAxisPos,
+          filled: false,
+          value: -1
+        };
+        xAxisPos += 85;
+        tileRow.push(tile);
       }
+      yAxisPos += 85;
+    }
 
-      return tiles;
-    })();
+    return tiles;
+  })();
 
-    this.filledTiles = [];
-    this.moving = false;
-    this.gameOver = false;
-    this.points = 0;
-    this.lastMove = { used: true };
+  this.filledTiles = [];
+  this.moving = false;
+  this.gameOver = false;
+  this.points = 0;
+  this.lastMove = { used: true };
+  this.key = {
+    num: keyNum,
   };
+  this.saveGame = false;
 };
 
 // initializes two filled random tiles in beginning
@@ -46,14 +56,14 @@ function fillRandomInitialTiles(state, {payload: {rowRand0, colRand0, rowRand1, 
 
   const tiles = state.tiles;
   const filledTiles = [];
+  const key = {...state.key};
 
   const arr = [...Array(4)].map(() => range(0, 4));
 
   let row = rng(0, arr.length, rowRand0);
   let col = arr[row][rng(0, arr[row].length, colRand0)];
 
-
-  tiles[row][col] = fillRandomTile(tiles[row][col], 0, twoOrFour0);
+  tiles[row][col] = fillRandomTile(tiles[row][col], 0, twoOrFour0, getAndIncrement(key));
   filledTiles.push(tiles[row][col]);
 
   arr[row].splice(col, 1);
@@ -62,19 +72,19 @@ function fillRandomInitialTiles(state, {payload: {rowRand0, colRand0, rowRand1, 
   col = arr[row][rng(0, arr[row].length, colRand1)];
 
 
-  tiles[row][col] = fillRandomTile(tiles[row][col], 1, twoOrFour1);
+  tiles[row][col] = fillRandomTile(tiles[row][col], 1, twoOrFour1, getAndIncrement(key));
   filledTiles.push(tiles[row][col]);
 
-  return { tiles, filledTiles }
+  return { tiles, filledTiles, key }
 }
 
 function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }) {
-
   const lastMove = state;
 
   const tiles = state.tiles; //tiles before shiftedTiles representation
   let points = state.points;
   let filledTiles = [...state.filledTiles];
+  const key = {...state.key};
 
   let rowTraverseCondition;
   let shift;
@@ -86,6 +96,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
   switch (direction) {
     case up:
       swapRowCol = true;
+    // eslint-disable-next-line
     case left:
       rowTraverseCondition = (x) => x < 4;
       shift = (x) => ++x;
@@ -94,6 +105,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
 
     case down:
       swapRowCol = true;
+    // eslint-disable-next-line
     case right:
       rowTraverseCondition = (x) => x > -1;
       shift = (x) => --x;
@@ -137,13 +149,12 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
               filled: true,
               isMerged: true,
               isNew: false,
-              key: createFilledTileKey(),
+              key: getAndIncrement(key),
               xAxisPos: posTile.xAxisPos,
               yAxisPos: posTile.yAxisPos,
               filledPtr: filledTiles.length
             };
             filledTiles.push(shiftedTile);
-
             // lose ptr to tiles since we're removing after transitioning
             filledTiles[back.filledPtr] = markForRemoval(filledTiles[back.filledPtr], shiftedTile);
             filledTiles[front.filledPtr] = markForRemoval(filledTiles[front.filledPtr], shiftedTile);
@@ -204,7 +215,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
   if (numFilledTiles < 16) {
     //place random tile.
     const emptyTile = emptyTiles[rng(0, emptyTiles.length, randomLocation)];
-    const randomTile = fillRandomTile(emptyTile, filledTiles.length, twoOrFour);
+    const randomTile = fillRandomTile(emptyTile, filledTiles.length, twoOrFour, getAndIncrement(key));
     shiftedTiles[emptyTile.row][emptyTile.col] = randomTile;
     delete emptyTile.row; delete emptyTile.col;
     filledTiles.push(randomTile);
@@ -225,7 +236,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
     }
   }
 
-  return {tiles: shiftedTiles, filledTiles, gameOver, points, lastMove};
+  return {tiles: shiftedTiles, filledTiles, gameOver, points, lastMove, key, saveGame: true};
 }
 
 /*
@@ -266,7 +277,7 @@ function undoMove(state) {
   return  {...state.lastMove, lastMove: {used: true}};
 }
 
-export default function(state = createInitialState(), action) {
+export default function(state = new InitialState(), action) {
   switch (action.type) {
     case SWIPE_TILES:
       return {...state, ...swipeTiles(state, action), move: true};
@@ -279,13 +290,11 @@ export default function(state = createInitialState(), action) {
 
     case INIT_TILES:
       if (action.payload.shouldRestart) {
-        state = createInitialState();
+        state = new InitialState(state.key.num);
       }
       return {...state, ...fillRandomInitialTiles(state, action)};
 
     case UNDO_MOVE:
-      console.log(state.lastMove.filledTiles, state.filledTiles);
-      console.log(state.lastMove.tiles, state.tiles);
       return undoMove(state);
 
     default:
