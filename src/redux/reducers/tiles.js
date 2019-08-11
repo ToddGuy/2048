@@ -19,8 +19,6 @@ const createInitialState = function() {
         tiles.push(tileRow);
         for (let j = 0; j < COLS; j++) {
           const tile = {
-            row: i,
-            col: j,
             yAxisPos: yAxisPos,
             xAxisPos: xAxisPos,
             filled: false,
@@ -208,6 +206,7 @@ function swipeTiles(state, { payload: { direction, randomLocation, twoOrFour } }
     const emptyTile = emptyTiles[rng(0, emptyTiles.length, randomLocation)];
     const randomTile = fillRandomTile(emptyTile, filledTiles.length, twoOrFour);
     shiftedTiles[emptyTile.row][emptyTile.col] = randomTile;
+    delete emptyTile.row; delete emptyTile.col;
     filledTiles.push(randomTile);
 
     numFilledTiles++;
