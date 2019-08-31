@@ -1,4 +1,4 @@
-import React, { Component } from 'react';
+import React, {Component, Fragment} from 'react';
 
 import classes from './Game.module.css';
 
@@ -10,7 +10,6 @@ import { directions } from "../../utils/data";
 import GameOver from "../../components/GamePlay/GameBoard/GameOver/GameOver";
 import Backdrop from "../../components/hoc/Backdrop/Backdrop";
 import RestartDialog from "../../components/GamePlay/GameBoard/RestartDialog/RestartDialog";
-import Auxiliary from "../../components/hoc/Auxiliary/Auxiliary";
 import Points from "../../components/Points/Points";
 import { FaRedo, FaHistory } from 'react-icons/fa';
 import Button from "../../components/UI/Button/Button";
@@ -177,14 +176,14 @@ class Game extends Component {
           <GameBoard>
             {
               (
-                <Auxiliary>
+                <Fragment>
                   <Backdrop display={!this.props.gameOver && this.state.restartDialog}>
                     <RestartDialog clicked={this.restartClicked}/>
                   </Backdrop>
                   <Backdrop display={this.props.gameOver}>
                     <GameOver/>
                   </Backdrop>
-                </Auxiliary>
+                </Fragment>
               )
             }
           </GameBoard>
