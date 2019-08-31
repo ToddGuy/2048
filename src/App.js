@@ -1,6 +1,6 @@
 import React from 'react';
 
-import Layout from "./components/hoc/Layout/Layout";
+import Layout from "./hoc/Layout/Layout";
 import Game from "./containers/Game/Game";
 
 function App() {

@@ -8,7 +8,7 @@ import {initTiles, swipeTiles, undoMove} from "../../redux/actions";
 import { range } from "../../utils/utility";
 import { directions } from "../../utils/data";
 import GameOver from "../../components/GamePlay/GameBoard/GameOver/GameOver";
-import Backdrop from "../../components/hoc/Backdrop/Backdrop";
+import Backdrop from "../../hoc/Backdrop/Backdrop";
 import RestartDialog from "../../components/GamePlay/GameBoard/RestartDialog/RestartDialog";
 import Points from "../../components/Points/Points";
 import { FaRedo, FaHistory } from 'react-icons/fa';
